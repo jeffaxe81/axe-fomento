@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateMatch } from '../lib/match.mjs';
 const city = { uf: 'SC', population: 50000, priority_areas: ['saúde', 'educação'] };
 const opportunity = { eligible_ufs: [], areas: ['saúde'], deadline: '2099-12-31', min_population: null, max_population: null };
-test('classifica aderência alta para prioridade municipal', () => {
+test('pontua aderência às prioridades municipais', () => {
   const result = evaluateMatch(city, opportunity);
   assert.equal(result.score, 70);
   assert.equal(result.eligible, true);
