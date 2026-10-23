@@ -37,3 +37,21 @@ A automação não deve ser exposta em endpoint HTTP. Revise o ticket depois da 
 - [ ] Definir obrigatoriedade de MFA para administradores **após** validar recuperação.
 - [ ] Evidência de armazenamento externo/imutável de logs e backups; RPO/RTO.
 - [ ] Revisar LGPD e retenção de e-mails, tickets e auditorias.
+
+## Atualização segura do banco e histórico de migrações
+A partir deste ciclo, `db:migrate` mantém a tabela `public.schema_migrations`, com versão, data e hash SHA-256 dos scripts já aplicados. Rodar `npm run db:migrate` novamente pula versões concluídas e **interrompe** a implantação se o SQL histórico tiver sido alterado. O CI testa duas execuções sucessivas.
+
+**Instalação nova:** use apenas `npm run db:migrate` seguido de `npm run db:provision`, sempre com `DATABASE_ADMIN_URL` fornecida ao serviço `setup`.
+
+**Base legada anterior ao controle de versões:** o migrador recusará atualizar automaticamente uma base com tabelas existentes, mas sem `schema_migrations`. Faça backup e valide a versão real aplicada, privilégios e integridade das tabelas. Em uma execução única no serviço `setup`, o operador pode registrar um baseline após revisão humana:
+
+```sh
+# EXEMPLO para banco comprovadamente atualizado até SQL 004 (não 005)
+MIGRATION_BASELINE_THROUGH=4 \\
+MIGRATION_BASELINE_CONFIRM=I_VERIFIED_LEGACY_SCHEMA \\
+  npm run db:baseline
+npm run db:migrate
+npm run db:provision
+```
+
+**Atenção:** o baseline faz verificações de estrutura e funções, não comprova a equivalência integral de políticas, constraints e dados. Faça a revisão e uma restauração de ensaio antes de usar em banco existente. Não escolha um número de versão superior ao realmente aplicado. Nunca execute com credencial `fomento_app` ou enquanto outra implantação efetua migrações.
