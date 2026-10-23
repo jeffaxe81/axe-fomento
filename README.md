@@ -6,6 +6,7 @@ Plataforma web para apoiar municípios na identificação de oportunidades de fo
 
 ## Funcionalidades V1
 - Login institucional com sessão assinada, validade de oito horas, cookie HttpOnly e revogação de sessão no PostgreSQL.\n- Autenticação em dois fatores TOTP opcional pelo menu **Segurança da conta**, com chaves criptografadas e bloqueio de reutilização de código.
+- Troca autenticada de senha com invalidação imediata de todas as sessões anteriores. Recuperação de MFA apenas por procedimento administrativo auditado, sem endpoint público.
 - Município com prioridades, população e código IBGE. Administradores atualizam seu próprio município.
 - Radar de oportunidades, busca por título/órgão e filtro por área.
 - Índice preliminar de aderência (UF, prioridades, janela de prazo e limites populacionais disponíveis).
@@ -42,7 +43,7 @@ docker compose --profile setup run --rm setup npm run db:seed
 docker compose up -d --build web
 ```
 
-O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TESTES.md`. Use HTTPS para acesso remoto. As instruções de MFA, backup criptografado, ensaio de restauração, Nginx e pendências de homologação estão em [`docs/PLANO_4_SEMANAS_SEGURANCA.md`](docs/PLANO_4_SEMANAS_SEGURANCA.md).
+O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TESTES.md`. Use HTTPS para acesso remoto. As instruções de MFA, backup criptografado, ensaio de restauração, Nginx e pendências de homologação estão em [`docs/PLANO_4_SEMANAS_SEGURANCA.md`](docs/PLANO_4_SEMANAS_SEGURANCA.md). Para perda do autenticador e troca de senha, consulte [`docs/RECUPERACAO_MFA_SESSOES.md`](docs/RECUPERACAO_MFA_SESSOES.md).
 
 ## Segurança e limitações
 - A branch de segurança incorpora RLS PostgreSQL, transações por município, role de aplicativo limitada, auditoria e limitação persistente de login; exige homologação.
