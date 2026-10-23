@@ -47,6 +47,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET em .env}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?Defina MFA_ENCRYPTION_KEY em .env}
       APP_ORIGIN: ${APP_ORIGIN:?Defina APP_ORIGIN com a URL pública do sistema em .env}
+      TRUST_PROXY_IP: ${TRUST_PROXY_IP:-false}
       NODE_ENV: production
     depends_on:
       db: { condition: service_healthy }
