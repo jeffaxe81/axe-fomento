@@ -1,11 +1,11 @@
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
-const { DATABASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, MUNICIPALITY_NAME, MUNICIPALITY_UF } = process.env;
-if (!DATABASE_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_NAME || !MUNICIPALITY_NAME || !MUNICIPALITY_UF) {
+const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, MUNICIPALITY_NAME, MUNICIPALITY_UF } = process.env;
+if (!(process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL) || !ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_NAME || !MUNICIPALITY_NAME || !MUNICIPALITY_UF) {
   throw new Error('Defina DATABASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, MUNICIPALITY_NAME, MUNICIPALITY_UF');
 }
 if (ADMIN_PASSWORD.length < 12) throw new Error('Senha do administrador deve ter pelo menos 12 caracteres');
-const db = new pg.Client({ connectionString: DATABASE_URL });
+const db = new pg.Client({ connectionString: process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL });
 await db.connect();
 try {
   await db.query('BEGIN');
