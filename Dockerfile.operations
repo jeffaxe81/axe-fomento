@@ -1,0 +1,7 @@
+FROM postgres:17-alpine
+RUN apk add --no-cache nodejs
+WORKDIR /ops
+COPY scripts/backup-crypto.mjs scripts/backup-db.mjs scripts/verify-backup.mjs scripts/restore-test-db.mjs ./scripts/
+USER postgres
+ENV BACKUP_DIRECTORY=/backups
+CMD ["node", "scripts/backup-db.mjs"]
