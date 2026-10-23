@@ -34,6 +34,7 @@ try {
     'auth_list_sessions(uuid,uuid)',
     'auth_revoke_other_sessions(uuid,uuid)'
   ]) await db.query('GRANT EXECUTE ON FUNCTION public.' + signature + ' TO fomento_app');
+  await db.query('GRANT EXECUTE ON FUNCTION public.auth_change_password(uuid,uuid,text,text) TO fomento_app');
   await db.query('COMMIT');
   console.log('Role fomento_app provisionada com acesso restrito e RLS.');
 } catch(e){try {await db.query('ROLLBACK')} catch {} throw e;} finally {await db.end();}
