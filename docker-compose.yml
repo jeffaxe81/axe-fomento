@@ -19,6 +19,7 @@ services:
     environment:
       DATABASE_URL: postgresql://fomento:${POSTGRES_PASSWORD}@db:5432/fomento
       SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET em .env}
+      APP_ORIGIN: ${APP_ORIGIN:?Defina APP_ORIGIN com a URL pública do sistema em .env}
       NODE_ENV: production
     depends_on:
       db: { condition: service_healthy }

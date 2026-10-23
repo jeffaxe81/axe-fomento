@@ -23,6 +23,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
       SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      APP_ORIGIN: http://127.0.0.1:3000
       TEST_BASE_URL: http://127.0.0.1:3000
       RUN_TEST_DB_ISOLATION: 'yes'
       NEXT_TELEMETRY_DISABLED: '1'
@@ -53,7 +54,7 @@ jobs:
           done
           cat /tmp/axe-fomento-server.log
           exit 1
-      - name: Tenant isolation and HTTP integration
+      - name: Tenant isolation and HTTP security integration
         run: node --test tests/integration/*.test.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
