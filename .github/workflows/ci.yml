@@ -25,6 +25,7 @@ jobs:
       DATABASE_URL: postgresql://fomento_app:ci_app_password_only_2026_test@127.0.0.1:5432/fomento_test
       APP_DB_PASSWORD: ci_app_password_only_2026_test
       SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      MFA_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
       APP_ORIGIN: http://127.0.0.1:3000
       TEST_BASE_URL: http://127.0.0.1:3000
       RUN_TEST_DB_ISOLATION: 'yes'
