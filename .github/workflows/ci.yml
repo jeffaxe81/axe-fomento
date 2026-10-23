@@ -7,15 +7,56 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fomento_test
+          POSTGRES_USER: fomento
+          POSTGRES_PASSWORD: test_password_local_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fomento -d fomento_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
+      SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      TEST_BASE_URL: http://127.0.0.1:3000
+      RUN_TEST_DB_ISOLATION: 'yes'
+      NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm run lint
-      - run: npm run build
-        env:
-          DATABASE_URL: postgresql://app:app@localhost:5432/fomento
-          SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Type check
+        run: npm run lint
+      - name: Initialize test database
+        run: npm run db:migrate
+      - name: Build
+        run: npm run build
+      - name: Start web service
+        run: |
+          npm run start -- --port 3000 > /tmp/axe-fomento-server.log 2>&1 &
+          echo $! > /tmp/axe-fomento-server.pid
+      - name: Wait for web service
+        run: |
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/axe-fomento-server.log
+          exit 1
+      - name: Tenant isolation and HTTP integration
+        run: node --test tests/integration/*.test.mjs
+      - name: Build Docker image
+        run: docker build --tag axe-fomento:ci .
+      - name: Show server logs when failing
+        if: failure()
+        run: cat /tmp/axe-fomento-server.log || true
