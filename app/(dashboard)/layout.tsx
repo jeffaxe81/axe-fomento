@@ -15,6 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/oportunidades">◈ <span>Radar de oportunidades</span></Link>
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
+        <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>
       </nav>
       <div className="sidebar-bottom"><div className="municipality-tag"><small>MUNICÍPIO ATIVO</small><strong>{city.name} / {city.uf}</strong></div><div className="version">V1 · MVP de validação</div></div>
     </aside>
