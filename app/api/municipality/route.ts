@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { queryForMunicipality } from '@/lib/db';
 import { rejectUntrustedWrite } from '@/lib/security';
 export const runtime = 'nodejs';
 const schema = z.object({
@@ -20,6 +20,6 @@ export async function PATCH(request: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Dados do perfil inválidos' }, { status: 400 });
   const { ibgeCode, population, priorityAreas } = parsed.data;
-  await query('UPDATE municipalities SET ibge_code=$2,population=$3,priority_areas=$4 WHERE id=$1', [user.municipality_id, ibgeCode, population, [...new Set(priorityAreas)]]);
+  await queryForMunicipality(user.municipality_id, 'UPDATE municipalities SET ibge_code=$2,population=$3,priority_areas=$4 WHERE id=$1', [user.municipality_id, ibgeCode, population, [...new Set(priorityAreas)]]);
   return NextResponse.json({ ok: true });
 }
