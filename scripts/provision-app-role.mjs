@@ -9,7 +9,7 @@ try {
   if (!(await db.query("SELECT 1 FROM pg_roles WHERE rolname='fomento_app'")).rowCount)
     await db.query('CREATE ROLE fomento_app LOGIN');
   const {rows:[{stmt}]}=await db.query(
-    "SELECT format('ALTER ROLE fomento_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT NOBYPASSRLS PASSWORD %L',$1) AS stmt",
+    "SELECT format('ALTER ROLE fomento_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT NOBYPASSRLS PASSWORD %L',$1::text) AS stmt",
     [APP_DB_PASSWORD]);
   await db.query(stmt);
   await db.query('BEGIN');
