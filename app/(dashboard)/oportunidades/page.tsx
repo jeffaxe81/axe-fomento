@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { query, type Municipality, type Opportunity } from '@/lib/db';
+import { queryForMunicipality, type Municipality, type Opportunity } from '@/lib/db';
 import { evaluateMatch } from '@/lib/match.mjs';
 import { formatMoney } from '@/lib/format';
 import { ProjectCreateButton } from '@/components/project-create-button';
 export const dynamic = 'force-dynamic';
 export default async function Opportunities({ searchParams }: { searchParams: Promise<{ busca?: string; area?: string }> }) {
   const user = await requireSession();
-  const [city] = await query<Municipality>('SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
-  const rows = await query<Opportunity & { is_example: boolean }>(`SELECT id, title, provider, source_url, to_char(deadline, 'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 100`);
+  const [city] = await queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
+  const rows = await queryForMunicipality<Opportunity & { is_example: boolean }>(user.municipality_id, `SELECT id, title, provider, source_url, to_char(deadline, 'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 100`);
   const { busca = '', area = '' } = await searchParams;
   const safeSearch = busca.trim().slice(0, 120).toLowerCase();
   const safeArea = area.trim().slice(0, 60).toLowerCase();
