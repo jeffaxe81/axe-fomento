@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { query, type Municipality } from '@/lib/db';
+import { queryForMunicipality, type Municipality } from '@/lib/db';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireSession();
-  const [city] = await query<Municipality>('SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
+  const [city] = await queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
   if (!city) return <div>Município indisponível. Contate o administrador.</div>;
   return <div className="app-shell">
     <aside className="sidebar">
