@@ -29,7 +29,7 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     a = (await db.query("INSERT INTO municipalities(name, uf, population) VALUES ($1,'SC',1000) RETURNING id", ['Teste A ' + suffix])).rows[0].id;
     b = (await db.query("INSERT INTO municipalities(name, uf, population) VALUES ($1,'RS',2000) RETURNING id", ['Teste B ' + suffix])).rows[0].id;
     const aUser = (await db.query("INSERT INTO users(municipality_id,full_name,email,password_hash,role) VALUES ($1,$2,$3,$4,'admin') RETURNING id", [a,'Teste Admin A',aEmail,hash])).rows[0].id;
-    await db.query("INSERT INTO users(municipality_id,full_name,email,password_hash,role) VALUES ($1,$2,$3,$4,'analyst')", [b,'Teste Analista B',bEmail,hash]);
+    const bUser = (await db.query("INSERT INTO users(municipality_id,full_name,email,password_hash,role) VALUES ($1,$2,$3,$4,'analyst') RETURNING id", [b,'Teste Analista B',bEmail,hash])).rows[0].id;
     opportunity = (await db.query("INSERT INTO opportunities(title,provider,is_example) VALUES ($1,'Fonte de teste',true) RETURNING id", ['Oportunidade fictícia ' + suffix])).rows[0].id;
     await db.query('INSERT INTO projects(municipality_id,opportunity_id,title,owner_user_id) VALUES ($1,$2,$3,$4)', [a,opportunity,projectName,aUser]);
 
@@ -70,6 +70,12 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     const createdRow = (await db.query('SELECT municipality_id, title FROM projects WHERE id=$1', [created.id])).rows[0];
     assert.equal(createdRow.municipality_id, b, 'Servidor deve ignorar município forjado no corpo');
     assert.equal(createdRow.title, forgedTitle);
+    const [createdAudit] = (await db.query(
+      "SELECT actor_user_id,municipality_id FROM audit_events WHERE action='project.insert' AND record_id=$1",
+      [created.id]
+    )).rows;
+    assert.equal(createdAudit.actor_user_id, bUser, 'A autoria da criação deve ficar registrada');
+    assert.equal(createdAudit.municipality_id, b, 'Auditoria deve permanecer no município B');
 
     // Testes negativos: parâmetros maliciosos nunca devem virar comandos SQL/HTML.
     const badUuid = await fetch(base + '/api/projects', {
@@ -111,6 +117,11 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     const populations = new Map(municipalData.rows.map(row => [row.id, row.population]));
     assert.equal(populations.get(a), 43210, 'Edição deve alcançar somente A');
     assert.equal(populations.get(b), 2000, 'Edição de A não pode afetar B');
+    const [editAudit] = (await db.query(
+      "SELECT actor_user_id FROM audit_events WHERE action='municipality.update' AND record_id=$1 ORDER BY id DESC LIMIT 1",
+      [a]
+    )).rows;
+    assert.equal(editAudit.actor_user_id, aUser, 'Edição do perfil deve indicar administrador autenticado');
   } finally {
     try {
       if (a || b) {
