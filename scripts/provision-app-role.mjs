@@ -30,6 +30,7 @@ try {
     'auth_mfa_enable(uuid,uuid,bigint)',
     'auth_mfa_login_secret(uuid,uuid)',
     'auth_mfa_complete(uuid,uuid,bigint)',
+    'auth_mfa_status(uuid,uuid)',
     'auth_list_sessions(uuid,uuid)',
     'auth_revoke_other_sessions(uuid,uuid)'
   ]) await db.query('GRANT EXECUTE ON FUNCTION public.' + signature + ' TO fomento_app');
