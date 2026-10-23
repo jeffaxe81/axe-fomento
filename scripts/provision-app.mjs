@@ -10,7 +10,7 @@ try {
   const [{ exists }] = (await client.query("SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='fomento_app') AS exists")).rows;
   if (!exists) await client.query('CREATE ROLE fomento_app LOGIN');
   // PostgreSQL formata e escapa o segredo com %L; não interpolamos a senha em SQL.
-  const [{ sql }] = (await client.query("SELECT format('ALTER ROLE fomento_app WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD %L', $1) AS sql", [APP_DB_PASSWORD])).rows;
+  const [{ sql }] = (await client.query("SELECT format('ALTER ROLE fomento_app WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD %L', $1::text) AS sql", [APP_DB_PASSWORD])).rows;
   await client.query(sql);
   await client.query('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM fomento_app');
   await client.query('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM fomento_app');
