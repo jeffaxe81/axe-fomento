@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const rows = await queryForMunicipality<{ id: string }>(
     user.municipality_id, 'INSERT INTO projects (municipality_id, opportunity_id, title, owner_user_id) ' +
     'SELECT $1, o.id, $3, $4 FROM opportunities o WHERE o.id = $2 RETURNING id',
-    [user.municipality_id, parsed.data.opportunityId, parsed.data.title, user.id]
+    [user.municipality_id, parsed.data.opportunityId, parsed.data.title, user.id], user.id
   );
   if (!rows.length) return NextResponse.json({ error: 'Oportunidade não encontrada' }, { status: 404 });
   return NextResponse.json({ id: rows[0].id }, { status: 201 });
