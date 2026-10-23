@@ -1,15 +1,17 @@
 import 'server-only';
 import { Pool, type QueryResultRow } from 'pg';
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL não definida');
-
 const globalPool = globalThis as typeof globalThis & { __fomentoPool?: Pool };
-export const pool = globalPool.__fomentoPool ?? new Pool({ connectionString: url, max: 10 });
-if (process.env.NODE_ENV !== 'production') globalPool.__fomentoPool = pool;
+function getPool(): Pool {
+  // A conexão só é inicializada em tempo de execução, nunca durante o build.
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL não definida');
+  if (!globalPool.__fomentoPool) globalPool.__fomentoPool = new Pool({ connectionString: url, max: 10 });
+  return globalPool.__fomentoPool;
+}
 
 export async function query<T extends QueryResultRow>(sql: string, params: unknown[] = []): Promise<T[]> {
-  const result = await pool.query<T>(sql, params);
+  const result = await getPool().query<T>(sql, params);
   return result.rows;
 }
 
