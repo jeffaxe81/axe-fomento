@@ -5,7 +5,7 @@ Plataforma web para apoiar municípios na identificação de oportunidades de fo
 > **V1 · MVP em validação.** Editais de amostra são explicitamente fictícios. Não há conexão ativa com portais oficiais nesta entrega. A pontuação não é parecer jurídico nem certificação de elegibilidade.
 
 ## Funcionalidades V1
-- Login institucional com sessão assinada, validade de oito horas e cookie HttpOnly.
+- Login institucional com sessão assinada, validade de oito horas, cookie HttpOnly e revogação de sessão no PostgreSQL.\n- Autenticação em dois fatores TOTP opcional pelo menu **Segurança da conta**, com chaves criptografadas e bloqueio de reutilização de código.
 - Município com prioridades, população e código IBGE. Administradores atualizam seu próprio município.
 - Radar de oportunidades, busca por título/órgão e filtro por área.
 - Índice preliminar de aderência (UF, prioridades, janela de prazo e limites populacionais disponíveis).
@@ -31,7 +31,7 @@ npm run dev
 
 ### Docker Compose
 
-Configure `.env` com `POSTGRES_PASSWORD`, `POSTGRES_APP_PASSWORD` (24+ caracteres e diferente do admin), `SESSION_SECRET` e `APP_ORIGIN`.
+Configure `.env` com `POSTGRES_PASSWORD`, `POSTGRES_APP_PASSWORD` (24+ caracteres e diferente do admin), `SESSION_SECRET`, `MFA_ENCRYPTION_KEY` e `APP_ORIGIN`. Para backup, configure `BACKUP_ENCRYPTION_KEY` diferente da chave MFA.
 
 ```bash
 docker compose up -d db
@@ -42,11 +42,11 @@ docker compose --profile setup run --rm setup npm run db:seed
 docker compose up -d --build web
 ```
 
-O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TESTES.md`. Use HTTPS para acesso remoto.
+O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TESTES.md`. Use HTTPS para acesso remoto. As instruções de MFA, backup criptografado, ensaio de restauração, Nginx e pendências de homologação estão em [`docs/PLANO_4_SEMANAS_SEGURANCA.md`](docs/PLANO_4_SEMANAS_SEGURANCA.md).
 
 ## Segurança e limitações
-- A branch de segurança incorpora RLS PostgreSQL, transações por município e role de aplicativo limitada; exige homologação.
-- A V1 ainda não contém MFA, rate limiting distribuído, auditoria imutável, conector de editais oficiais nem verificador jurídico. Estes itens bloqueiam o uso público até a homologação.
+- A branch de segurança incorpora RLS PostgreSQL, transações por município, role de aplicativo limitada, auditoria e limitação persistente de login; exige homologação.
+- A branch antecipada dispõe de MFA TOTP opcional, revogação de sessões, rate limiting distribuído e auditoria básica, mas **ainda não conta com recuperação self-service de MFA nem trilha imutável externa**. Também faltam conector oficial de editais e verificador jurídico; não há autorização para uso público.
 - O endpoint de saúde (`GET /api/health`) verifica o banco, sem dados privados.
 - URLs e registros de exemplo não constituem oportunidades reais.
 - Cadastro público de administradores fica desabilitado: use exclusivamente o CLI de bootstrap.
@@ -55,7 +55,7 @@ O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TES
 | Versão | Escopo |
 | --- | --- |
 | V1 | Radar, perfil municipal, projetos e filtros iniciais |
-| V1.1 | Ingestão oficial verificável, homologação de RLS, auditoria, controles de segurança e gestão de ciclo de vida |
+| V1.1 | Ingestão oficial verificável, homologação de RLS, auditoria, controles de segurança e gestão de ciclo de vida (PRs em validação) |
 | V2 | Inteligência jurídica, análise documental, IA/RAG e simulador financeiro |
 | V3 | Rede nacional e internacional de fomento |
 | V4 | Avaliador inteligente de propostas (nota, parecer preliminar, lacunas e recomendações) |

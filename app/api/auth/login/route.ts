@@ -3,7 +3,7 @@ import { isIP } from 'node:net';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { query } from '@/lib/db';
-import { setSessionCookie } from '@/lib/auth';
+import { setSessionCookie, setPendingMfaCookie } from '@/lib/auth';
 import { rejectUntrustedWrite } from '@/lib/security';
 export const runtime = 'nodejs';
 const loginSchema = z.object({ email: z.string().email().max(254), password: z.string().min(1).max(512) });
@@ -35,10 +35,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Muitas tentativas. Tente novamente mais tarde.' },
         { status: 429, headers: { 'Retry-After': '900' } });
     }
-    const [user] = await query<{ id: string; sid: string }>(
-      'SELECT id, sid FROM public.auth_login($1,$2)', [email, body.data.password]
+    const [user] = await query<{ id: string; sid: string; mfa_required: boolean }>(
+      'SELECT id, sid, mfa_required FROM public.auth_login($1,$2)', [email, body.data.password]
     );
     if (!user) return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
+    if(user.mfa_required){
+      await setPendingMfaCookie(user.id,user.sid);
+      return NextResponse.json({mfaRequired:true},{status:202});
+    }
     await setSessionCookie(user.id, user.sid);
     return NextResponse.json({ ok: true });
   } catch {

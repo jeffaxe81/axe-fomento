@@ -25,6 +25,7 @@ jobs:
       DATABASE_URL: postgresql://fomento_app:ci_app_password_only_2026_test@127.0.0.1:5432/fomento_test
       APP_DB_PASSWORD: ci_app_password_only_2026_test
       SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      MFA_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
       APP_ORIGIN: http://127.0.0.1:3000
       TEST_BASE_URL: http://127.0.0.1:3000
       RUN_TEST_DB_ISOLATION: 'yes'
@@ -62,6 +63,26 @@ jobs:
         run: node --test tests/integration/*.test.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
+      - name: Build isolated operations image
+        run: docker build --file Dockerfile.operations --tag axe-fomento-operations:ci .
+      - name: Verify encrypted database backup and isolated restore
+        env:
+          BACKUP_ENCRYPTION_KEY: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE='
+        run: |
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();await db.query('CREATE DATABASE fomento_restore_ci');await db.end();"
+          docker run --rm --network host \
+            --env DATABASE_ADMIN_URL --env BACKUP_ENCRYPTION_KEY \
+            --env RESTORE_TARGET_URL=postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_restore_ci \
+            --env RESTORE_CONFIRMATION=RESTORE_DISPOSABLE_DATABASE \
+            -v axe-fomento-ci-backups:/backups axe-fomento-operations:ci sh -ec '
+              node scripts/backup-db.mjs
+              export BACKUP_FILE=$(find /backups -name "*.dump.enc" | head -1)
+              node scripts/verify-backup.mjs
+              node scripts/restore-test-db.mjs
+            '
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL.replace('/fomento_test','/fomento_restore_ci')});await db.connect();const r=await db.query(\"SELECT to_regclass('public.projects') IS NOT NULL AS restored\");if(!r.rows[0].restored)process.exit(1);await db.end();"
+      - name: Dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=critical
       - name: Show server logs when failing
         if: failure()
         run: cat /tmp/axe-fomento-server.log || true
