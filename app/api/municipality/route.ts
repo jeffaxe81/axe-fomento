@@ -20,6 +20,6 @@ export async function PATCH(request: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'Dados do perfil inválidos' }, { status: 400 });
   const { ibgeCode, population, priorityAreas } = parsed.data;
-  await queryForMunicipality(user.municipality_id, 'UPDATE municipalities SET ibge_code=$2,population=$3,priority_areas=$4 WHERE id=$1', [user.municipality_id, ibgeCode, population, [...new Set(priorityAreas)]]);
+  await queryForMunicipality(user.municipality_id, 'UPDATE municipalities SET ibge_code=$2,population=$3,priority_areas=$4 WHERE id=$1', [user.municipality_id, ibgeCode, population, [...new Set(priorityAreas)]], user.id);
   return NextResponse.json({ ok: true });
 }

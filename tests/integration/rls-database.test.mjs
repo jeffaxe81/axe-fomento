@@ -51,9 +51,15 @@ test('PostgreSQL RLS protege municípios, usuários e projetos mesmo sem filtros
   await app.query('COMMIT');
   assert.equal((await app.query('SELECT id FROM projects')).rowCount,0);
 
-  assert.equal((await app.query('SELECT municipality_id FROM public.auth_session_user($1::uuid)',[ub])).rows[0].municipality_id,b);
-  assert.equal((await app.query('SELECT id FROM public.auth_login($1,$2)',['b-'+suffix+'@example.invalid',pw])).rows[0].id,ub);
+  const login=(await app.query('SELECT id,sid FROM public.auth_login($1,$2)',['b-'+suffix+'@example.invalid',pw])).rows[0];
+  assert.equal(login.id,ub);
+  assert.equal((await app.query('SELECT municipality_id FROM public.auth_session_user($1::uuid,$2::uuid)',[ub,login.sid])).rows[0].municipality_id,b);
   assert.equal((await app.query('SELECT id FROM public.auth_login($1,$2)',['b-'+suffix+'@example.invalid','senha-incorreta'])).rowCount,0);
+  assert.equal((await app.query('SELECT public.auth_revoke_session($1::uuid,$2::uuid)',[ub,login.sid])).rows[0].auth_revoke_session,true);
+  assert.equal((await app.query('SELECT id FROM public.auth_session_user($1::uuid,$2::uuid)',[ub,login.sid])).rowCount,0);
+  const audit=(await admin.query('SELECT action, municipality_id FROM audit_events WHERE municipality_id=$1',[a])).rows;
+  assert.ok(audit.some(e=>e.action==='project.insert'));
+  await assert.rejects(app.query('SELECT * FROM audit_events'),/permission denied/i);
  }finally{
   try{await app.query('ROLLBACK')}catch{}
   const ids=[a,b].filter(Boolean);

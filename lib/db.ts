@@ -5,6 +5,9 @@ function getPool(): Pool {
   // DATABASE_URL must point to fomento_app, never the migration account.
   const url=process.env.DATABASE_URL;
   if(!url) throw new Error('DATABASE_URL não definida');
+  // Fail closed in production if a privileged database credential is misconfigured.
+  if(process.env.NODE_ENV==='production' && decodeURIComponent(new URL(url).username)!=='fomento_app')
+    throw new Error('A aplicação deve conectar ao PostgreSQL exclusivamente como fomento_app');
   if(!globalPool.__fomentoPool) globalPool.__fomentoPool=new Pool({connectionString:url,max:10});
   return globalPool.__fomentoPool;
 }
@@ -14,7 +17,7 @@ export async function query<T extends QueryResultRow>(sql:string,params:unknown[
 }
 /** Set tenant from a VERIFIED server session, scoped to one database transaction. */
 export async function queryForMunicipality<T extends QueryResultRow>(
-  municipalityId:string, sql:string, params:unknown[]=[]
+  municipalityId:string, sql:string, params:unknown[]=[], actorId?:string
 ):Promise<T[]> {
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(municipalityId))
     throw new Error('Contexto municipal inválido');
@@ -23,6 +26,11 @@ export async function queryForMunicipality<T extends QueryResultRow>(
   try {
     await client.query('BEGIN');active=true;
     await client.query("SELECT set_config('app.tenant_id',$1,true)",[municipalityId]);
+    if(actorId) {
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actorId))
+        throw new Error('Identidade do ator inválida');
+      await client.query("SELECT set_config('app.actor_id',$1,true)",[actorId]);
+    }
     const result=await client.query<T>(sql,params);
     await client.query('COMMIT');active=false;
     return result.rows;
