@@ -34,6 +34,9 @@ test('MFA exige segundo fator e impede acesso via cookie pendente; sessões são
     let r=await post('/api/auth/login',{email,password});
     assert.equal(r.status,200);
     const original=r.headers.get('set-cookie')?.split(';')[0];assert.ok(original);
+    const statusBefore=await fetch(base+'/api/auth/mfa/status',{headers:{cookie:original}});
+    assert.equal(statusBefore.status,200);
+    assert.equal((await statusBefore.json()).enabled,false);
     r=await post('/api/auth/mfa/enroll',{action:'begin'},original);
     assert.equal(r.status,200);
     const {secret}=await r.json();assert.match(secret,/^[A-Z2-7]{32}$/);
@@ -46,6 +49,8 @@ test('MFA exige segundo fator e impede acesso via cookie pendente; sessões são
     assert.equal(r.status,200);
     const [userAfter]=(await admin.query('SELECT mfa_enabled,mfa_secret_cipher,mfa_pending_cipher FROM users WHERE id=$1',[uid])).rows;
     assert.equal(userAfter.mfa_enabled,true);assert.equal(userAfter.mfa_pending_cipher,null);
+    const statusAfter=await fetch(base+'/api/auth/mfa/status',{headers:{cookie:original}});
+    assert.equal((await statusAfter.json()).enabled,true);
     assert.ok(userAfter.mfa_secret_cipher.startsWith('v1:'));
 
     r=await post('/api/auth/login',{email,password});
