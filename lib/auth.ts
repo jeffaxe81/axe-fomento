@@ -30,7 +30,7 @@ export async function getSession(): Promise<UserSession | null> {
     const { payload } = await jwtVerify(token, secretKey(), { issuer: 'axes-fomento', algorithms: ['HS256'] });
     if (!payload.sub) return null;
     const [user] = await query<UserSession>(
-      'SELECT id, full_name, email, role, municipality_id FROM users WHERE id = $1 AND active = true', [payload.sub]
+      'SELECT id, full_name, email, role, municipality_id FROM public.auth_resolve_session($1::uuid)', [payload.sub]
     );
     return user ?? null;
   } catch { return null; }

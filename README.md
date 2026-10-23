@@ -1,67 +1,90 @@
-# Axes Fomento — Inteligência em Captação de Recursos Públicos
+# Axes Fomento — Plataforma para captação de recursos públicos
 
-Plataforma web para apoiar municípios na identificação de oportunidades de fomento, triagem inicial de elegibilidade e organização de projetos de captação.
+> **V1.1 · em homologação.** O radar usa oportunidades fictícias de demonstração; não há coleta oficial nem garantia de elegibilidade. A PR de RLS reforça o isolamento entre prefeituras, mas **não substitui o penteste**.
 
-> **V1 · MVP em validação.** Editais de amostra são explicitamente fictícios. Não há conexão ativa com portais oficiais nesta entrega. A pontuação não é parecer jurídico nem certificação de elegibilidade.
+## Funcionalidades disponíveis
 
-## Funcionalidades V1
-- Login institucional com sessão assinada, validade de oito horas e cookie HttpOnly.
-- Município com prioridades, população e código IBGE. Administradores atualizam seu próprio município.
-- Radar de oportunidades, busca por título/órgão e filtro por área.
-- Índice preliminar de aderência (UF, prioridades, janela de prazo e limites populacionais disponíveis).
-- Início de projetos a partir de oportunidades; projetos ficam associados ao município autenticado.
-- Dashboard com resumo, iniciativas e projetos.
-- Testes automáticos de classificação; CI de teste, tipos e compilação.
+- Login institucional com cookie HttpOnly e token assinado, expirando em oito horas.
+- Perfil municipal com UF, código IBGE, população e prioridades; somente administradores editam.
+- Radar com busca, filtros e nota **preliminar** de aderência, nunca parecer técnico ou jurídico.
+- Projetos vinculados ao município autenticado e acompanhamento no dashboard.
+- **RLS PostgreSQL** para prefeituras, usuários e projetos. O contexto do município é obrigatório e restrito a uma única transação; dados de oportunidades são públicos.
+- Usuário PostgreSQL `fomento_app` sem privilégios administrativos, sem BYPASSRLS e sem acesso direto aos hashes de senha.
+- Funções SQL restritas para localizar credenciais no login e revalidar a sessão.
+- Testes unitários, testes de RLS com dois municípios e pipeline de CI.
 
-## Ambiente local (Node.js + PostgreSQL)
+## Instalação com Docker Compose (recomendada)
 
-Requisitos: Node.js 22, npm e PostgreSQL 17 (ou Docker).
+Requer Docker/Compose. Configure `.env` com três segredos distintos:
 
 ```bash
 cp .env.example .env
-# Configure DATABASE_URL e SESSION_SECRET (>=32 caracteres aleatórios).
+# Edite POSTGRES_PASSWORD, APP_DB_PASSWORD (>=24) e SESSION_SECRET (>=32).
+docker compose up -d db
+# Migrações e criação do papel runtime são executadas SEM manter credenciais
+# administrativas no serviço web:
+docker compose --profile setup run --rm setup
+# Dados EXCLUSIVAMENTE fictícios:
+docker compose --profile setup run --rm setup npm run db:seed
+# Primeiro administrador — use credenciais próprias e apenas ambiente de teste:
+docker compose --profile setup run --rm \
+  -e ADMIN_EMAIL=admin@exemplo.gov.br \
+  -e ADMIN_PASSWORD='SenhaForteGeradaParaHomologacao123!' \
+  -e ADMIN_NAME='Administrador Municipal' \
+  -e MUNICIPALITY_NAME='Cidade de Teste' \
+  -e MUNICIPALITY_UF=SC \
+  setup npm run admin:bootstrap
+docker compose up -d --build web
+```
+
+Acesso em `http://localhost:3000` pelo próprio host; use reverse proxy TLS para acesso externo. **Nunca expor PostgreSQL, nem as credenciais administrativas ao processo web.** A aplicação web exige `PGUSER=fomento_app` e recusa `DATABASE_URL` (reservada à migração).
+
+### Desenvolvimento local sem Docker
+
+Configure o PostgreSQL 17 e rode os comandos administrativos **com `DATABASE_URL` apenas no processo CLI**, sem salvá-la em `.env` (carregado pelo Next.js):
+
+```bash
 npm install --no-audit --no-fund
-npm run db:migrate
-npm run db:seed
-ADMIN_EMAIL=admin@exemplo.gov.br ADMIN_PASSWORD='SenhaAleatoriaMuitoForte123!' \
-ADMIN_NAME='Administrador Municipal' MUNICIPALITY_NAME='Cidade de Teste' MUNICIPALITY_UF=SC \
-npm run admin:bootstrap
+DATABASE_URL='postgresql://admin:senha@localhost:5432/fomento' npm run db:migrate
+DATABASE_URL='postgresql://admin:senha@localhost:5432/fomento' \
+  APP_DB_PASSWORD='senha_app_aleatoria_de_24_ou_mais' npm run db:provision
+# Atualize PGHOST, PGUSER=fomento_app, PGPASSWORD no .env e inicie:
 npm run dev
 ```
 
-Acesse `http://localhost:3000`.
+O bootstrap administrativo é obrigatório para o primeiro login. Credenciais reais devem vir de gerenciador de segredos, nunca de comandos versionados ou logs de CI.
 
-### Docker Compose
-Crie `.env` com `POSTGRES_PASSWORD`, `SESSION_SECRET` e opcionalmente `DATABASE_URL` para operações CLI. Não use senhas do exemplo em produção.
+### Atualização de instalações V1
+
+1. Efetue backup testado do PostgreSQL e preserve uma janela de rollback.
+2. Atualize o código, aplique `db:migrate` e depois `db:provision`, usando papel de migração.
+3. Troque as credenciais do web para `fomento_app` e remova qualquer `DATABASE_URL` administrativa do serviço web.
+4. Rode a suíte de integração e valide perfis de **duas** prefeituras antes de abrir acesso.
+
+**Atenção:** o runtime antigo, usando o dono do banco, contornava o isolamento por RLS. A troca de credenciais é obrigatória; não basta aplicar o SQL. O provisionamento é idempotente, mas concede/revoga permissões: revise a janela de implantação.
+
+## Testes e segurança
 
 ```bash
-docker compose up -d --build
-docker compose exec web npm run db:migrate
-docker compose exec web npm run db:seed
-docker compose exec -e ADMIN_EMAIL=admin@exemplo.gov.br \
-  -e ADMIN_PASSWORD='SenhaAleatoriaMuitoForte123!' \
-  -e ADMIN_NAME='Administrador Municipal' \
-  -e MUNICIPALITY_NAME='Cidade de Teste' -e MUNICIPALITY_UF=SC \
-  web npm run admin:bootstrap
+npm test         # lógica de matching
+npm run lint     # compilação de tipos TypeScript
+npm run build    # compilação Next.js
+# Depois de executar migrate e provision com PostgreSQL:
+RLS_TEST_ADMIN_URL='postgresql://admin:...@localhost:5432/fomento' \
+RLS_TEST_APP_URL='postgresql://fomento_app:...@localhost:5432/fomento' \
+npm run test:db
 ```
 
-> A porta 3000 expõe o serviço apenas no loopback do host. Use proxy reverso com TLS para acesso remoto. Ajuste firewalls e cookies seguros na implantação.
+A integração verifica acesso cruzado entre municípios, operações negadas, ausência de contexto, expiração do contexto após COMMIT, usuário sem BYPASSRLS e separação das funções de autenticação. CI executa isso com PostgreSQL 17.
 
-## Segurança e limitações
-- Há escopo por município nas leituras e escritas de projetos e controle de função para editar o perfil.
-- A V1 **ainda não contém** RLS no PostgreSQL, MFA, rate limiting distribuído, auditoria imutável, conector de editais oficiais nem verificador jurídico. Estes itens são bloqueadores para uso público/produção e constam no roadmap.
-- O endpoint de saúde (`GET /api/health`) verifica o banco, sem dados privados.
-- URLs e registros de exemplo não constituem oportunidades reais.
-- Cadastro público de administradores fica desabilitado: use exclusivamente o CLI de bootstrap.
+**Pontos pendentes para produção:** MFA; proteção distribuída contra força bruta; revisão de CSRF/origem; auditoria; backup e recuperação testados; penteste independente; integração e validação dos editais em fontes oficiais; LGPD; testes end-to-end. Não liberar a plataforma publicamente antes da homologação.
 
 ## Roadmap
-| Versão | Escopo |
-| --- | --- |
-| V1 | Radar, perfil municipal, projetos e filtros iniciais |
-| V1.1 | Ingestão oficial verificável, RLS, auditoria, controles de segurança e gestão de ciclo de vida |
-| V2 | Inteligência jurídica, análise documental, IA/RAG e simulador financeiro |
-| V3 | Rede nacional e internacional de fomento |
-| V4 | Avaliador inteligente de propostas (nota, parecer preliminar, lacunas e recomendações) |
 
-## Testes
-`npm test` executa o algoritmo de match; `npm run lint` valida TypeScript. Para homologação antes de produção faltam testes de integração com banco, segurança e caixa-preta.
+| Versão | Conteúdo |
+|---|---|
+| V1 | Radar, perfil municipal e organização de projetos |
+| V1.1 | RLS, fontes oficiais verificáveis, segurança, auditoria e homologação |
+| V2 | Inteligência jurídica, documentos e simulação financeira com revisão humana |
+| V3 | Fontes internacionais e rede de fomento |
+| V4 | Analisador de propostas com nota preliminar, lacunas e recomendações explicáveis |

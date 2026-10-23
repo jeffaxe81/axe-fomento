@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { query, type Municipality } from '@/lib/db';
+import { queryForMunicipality, type Municipality } from '@/lib/db';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireSession();
-  const [city] = await query<Municipality>('SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
+  const [city] = await queryForMunicipality<Municipality>('SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', user.municipality_id, [user.municipality_id]);
   if (!city) return <div>Município indisponível. Contate o administrador.</div>;
   return <div className="app-shell">
     <aside className="sidebar">
@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
       </nav>
-      <div className="sidebar-bottom"><div className="municipality-tag"><small>MUNICÍPIO ATIVO</small><strong>{city.name} / {city.uf}</strong></div><div className="version">V1 · MVP de validação</div></div>
+      <div className="sidebar-bottom"><div className="municipality-tag"><small>MUNICÍPIO ATIVO</small><strong>{city.name} / {city.uf}</strong></div><div className="version">V1.1 · Homologação</div></div>
     </aside>
     <div className="work-area">
       <header className="topbar"><div><span className="breadcrumb">Gestão de fomento público</span><strong>{city.name} • {city.uf}</strong></div><div className="user-controls"><span className="user-pill">{user.full_name} <small>({user.role})</small></span><form action="/api/auth/logout" method="post"><button type="submit" className="button-link">Sair</button></form></div></header>

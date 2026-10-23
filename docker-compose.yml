@@ -10,14 +10,33 @@ services:
       test: ["CMD-SHELL", "pg_isready -U fomento -d fomento"]
       interval: 5s
       retries: 15
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    volumes: ["pgdata:/var/lib/postgresql/data"]
     networks: [private]
+
+  # Bootstrap/migrações rodam separadamente. Nunca fornecer essa senha ao web.
+  setup:
+    build: .
+    profiles: ["setup"]
+    environment:
+      PGHOST: db
+      PGDATABASE: fomento
+      PGUSER: fomento
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD em .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Defina APP_DB_PASSWORD em .env}
+    command: ["sh", "-c", "npm run db:migrate && npm run db:provision"]
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [private]
+
   web:
     build: .
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://fomento:${POSTGRES_PASSWORD}@db:5432/fomento
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: fomento
+      PGUSER: fomento_app
+      PGPASSWORD: ${APP_DB_PASSWORD:?Defina APP_DB_PASSWORD em .env}
       SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET em .env}
       NODE_ENV: production
     depends_on:

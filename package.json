@@ -10,7 +10,9 @@
     "test": "node --test tests/*.test.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed.mjs",
-    "admin:bootstrap": "node scripts/bootstrap-admin.mjs"
+    "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "db:provision": "node scripts/provision-app.mjs",
+    "test:db": "node --test tests/rls.integration.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

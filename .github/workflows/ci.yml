@@ -3,10 +3,27 @@ on:
   push:
     branches: [main, 'feat/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**']
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fomento
+          POSTGRES_USER: fomento
+          POSTGRES_PASSWORD: integration_admin_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fomento -d fomento"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://fomento:integration_admin_only@localhost:5432/fomento
+      APP_DB_PASSWORD: integration_app_only_password_12345
+      RLS_TEST_ADMIN_URL: postgresql://fomento:integration_admin_only@localhost:5432/fomento
+      RLS_TEST_APP_URL: postgresql://fomento_app:integration_app_only_password_12345@localhost:5432/fomento
+      SESSION_SECRET: ci_only_secret_please_do_not_use_in_production_123
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,8 +31,8 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npm test
+      - run: npm run db:migrate
+      - run: npm run db:provision
+      - run: npm run test:db
       - run: npm run lint
       - run: npm run build
-        env:
-          DATABASE_URL: postgresql://app:app@localhost:5432/fomento
-          SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'

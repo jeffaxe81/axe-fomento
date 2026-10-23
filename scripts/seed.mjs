@@ -1,7 +1,7 @@
 /** Amostras demonstrativas, NÃO representam editais públicos reais ou vigentes. */
 import pg from 'pg';
-if (!process.env.DATABASE_URL) throw new Error('Defina DATABASE_URL');
-const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+if (!process.env.DATABASE_URL && !(process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE)) throw new Error('Defina DATABASE_URL ou credenciais PG* administrativas');
+const db = new pg.Client(process.env.DATABASE_URL ? { connectionString: process.env.DATABASE_URL } : {});
 await db.connect();
 const samples = [
   ['Programa Demonstrativo de Saúde Municipal', 'FONTE FICTÍCIA — homologação', ['saúde'], []],
