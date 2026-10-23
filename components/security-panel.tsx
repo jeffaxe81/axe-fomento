@@ -4,6 +4,7 @@ type SessionInfo={id:string;created_at:string;expires_at:string;is_current:boole
 export function SecurityPanel(){
   const [sessions,setSessions]=useState<SessionInfo[]>([]);
   const [secret,setSecret]=useState('');
+  const [enabled,setEnabled]=useState(false);
   const [uri,setUri]=useState('');
   const [code,setCode]=useState('');
   const [status,setStatus]=useState('');
@@ -12,7 +13,8 @@ export function SecurityPanel(){
     const r=await fetch('/api/auth/sessions',{cache:'no-store'});
     if(r.ok)setSessions((await r.json()).sessions||[]);
   }
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{void load();void fetch('/api/auth/mfa/status',{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).then(v=>{if(v)setEnabled(v.enabled===true);}).catch(()=>{});},[]);
   async function begin(){
     setBusy(true);setStatus('');
     try{
@@ -28,7 +30,7 @@ export function SecurityPanel(){
       const r=await fetch('/api/auth/mfa/enroll',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'confirm',code})});
       const d=await r.json();
       if(!r.ok)throw new Error(d.error||'Falha na confirmação');
-      setSecret('');setUri('');setCode('');setStatus('Autenticação em dois fatores ativada. Demais sessões encerradas.');
+      setSecret('');setUri('');setCode('');setEnabled(true);setStatus('Autenticação em dois fatores ativada. Demais sessões encerradas.');
       await load();
     }catch(e){setStatus(e instanceof Error?e.message:'Erro');}finally{setBusy(false);}
   }
@@ -43,7 +45,7 @@ export function SecurityPanel(){
   return <div className="grid-panels">
     <section className="panel"><div className="panel-heading"><h3>Aplicativo autenticador (TOTP)</h3></div>
       <p className="help">Proteja seu acesso com um código temporário de seis dígitos. Guarde a chave com segurança: ela só é apresentada nesta etapa.</p>
-      {!secret?<button type="button" className="btn btn-primary" disabled={busy} onClick={begin}>Configurar verificação em duas etapas</button>
+      {enabled?<p className="success" role="status">MFA ativado nesta conta.</p>:!secret?<button type="button" className="btn btn-primary" disabled={busy} onClick={begin}>Configurar verificação em duas etapas</button>
       :<form className="login-form" onSubmit={confirm}>
         <label>Chave para adicionar ao aplicativo autenticador
           <input type="text" readOnly value={secret} aria-label="Chave de autenticação" /></label>
