@@ -26,7 +26,7 @@ CREATE POLICY user_sessions_tenant ON public.user_sessions
 
 CREATE TABLE IF NOT EXISTS public.audit_events (
   id bigserial PRIMARY KEY,
-  municipality_id uuid NOT NULL REFERENCES public.municipalities(id) ON DELETE RESTRICT,
+  municipality_id uuid NOT NULL,
   actor_user_id uuid,
   action text NOT NULL CHECK(action IN ('project.insert','project.update','project.delete','municipality.update')),
   record_id uuid NOT NULL,
