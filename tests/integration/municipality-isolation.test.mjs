@@ -71,6 +71,31 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     assert.equal(createdRow.municipality_id, b, 'Servidor deve ignorar município forjado no corpo');
     assert.equal(createdRow.title, forgedTitle);
 
+    // Testes negativos: parâmetros maliciosos nunca devem virar comandos SQL/HTML.
+    const badUuid = await fetch(base + '/api/projects', {
+      method: 'POST', headers: headersB,
+      body: JSON.stringify({ title: 'Tentativa de injeção', opportunityId: "' OR 1=1 --" })
+    });
+    assert.equal(badUuid.status, 400, 'Identificadores malformados são recusados');
+    const oversized = await fetch(base + '/api/projects', {
+      method: 'POST', headers: headersB,
+      body: JSON.stringify({ title: 'a'.repeat(181), opportunityId: opportunity })
+    });
+    assert.equal(oversized.status, 400, 'Títulos acima do limite são recusados');
+
+    const injectionTitle = "Tentativa '); DROP TABLE users; -- <img src=x onerror=alert(1)>";
+    const injectionCreate = await fetch(base + '/api/projects', {
+      method: 'POST', headers: headersB,
+      body: JSON.stringify({ title: injectionTitle, opportunityId: opportunity })
+    });
+    assert.equal(injectionCreate.status, 201, 'Texto informado deve ser armazenado como dado');
+    const injectionRow = (await db.query('SELECT title FROM projects WHERE id=$1', [(await injectionCreate.json()).id])).rows[0];
+    assert.equal(injectionRow.title, injectionTitle);
+    assert.ok((await db.query('SELECT count(*) FROM users')).rows.length, 'Tabela de usuários permanece acessível');
+    const attackPage = await fetch(base + '/projetos', { headers: { cookie: cookieB } });
+    assert.equal(attackPage.status, 200);
+    assert.ok(!(await attackPage.text()).includes('<img src=x onerror=alert(1)>'), 'HTML malicioso não pode ser interpretado pelo navegador');
+
     const forbidden = await fetch(base + '/api/municipality', {
       method: 'PATCH', headers: headersB,
       body: JSON.stringify({ ibgeCode: null, population: 98765, priorityAreas: ['segurança'] })
