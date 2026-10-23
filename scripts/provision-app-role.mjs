@@ -24,6 +24,15 @@ try {
   await db.query('GRANT EXECUTE ON FUNCTION public.auth_session_user(uuid,uuid) TO fomento_app');
   await db.query('GRANT EXECUTE ON FUNCTION public.auth_revoke_session(uuid,uuid) TO fomento_app');
   await db.query('GRANT EXECUTE ON FUNCTION public.auth_consume_limit(text) TO fomento_app');
+  for (const signature of [
+    'auth_mfa_begin(uuid,uuid,text)',
+    'auth_mfa_pending_secret(uuid,uuid)',
+    'auth_mfa_enable(uuid,uuid,bigint)',
+    'auth_mfa_login_secret(uuid,uuid)',
+    'auth_mfa_complete(uuid,uuid,bigint)',
+    'auth_list_sessions(uuid,uuid)',
+    'auth_revoke_other_sessions(uuid,uuid)'
+  ]) await db.query('GRANT EXECUTE ON FUNCTION public.' + signature + ' TO fomento_app');
   await db.query('COMMIT');
   console.log('Role fomento_app provisionada com acesso restrito e RLS.');
 } catch(e){try {await db.query('ROLLBACK')} catch {} throw e;} finally {await db.end();}
