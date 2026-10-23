@@ -7,7 +7,7 @@ const client = new pg.Client({ connectionString });
 await client.connect();
 try {
   await client.query('BEGIN');
-  for (const name of ['001_initial.sql', '002_tenant_rls.sql', '003_auth_sessions_audit.sql', '004_mfa_session_controls.sql']) {
+  for (const name of ['001_initial.sql', '002_tenant_rls.sql', '003_auth_sessions_audit.sql', '004_mfa_session_controls.sql', '005_password_recovery.sql']) {
     await client.query(await readFile(new URL('../sql/' + name, import.meta.url), 'utf8'));
     console.log('Migração aplicada: ' + name);
   }
