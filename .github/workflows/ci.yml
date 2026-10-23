@@ -65,6 +65,8 @@ jobs:
           exit 1
       - name: Tenant isolation and HTTP security integration
         run: node --test tests/integration/*.test.mjs
+      - name: Check restricted PostgreSQL role grants
+        run: node --test tests/security/role-grants.test.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
       - name: Build isolated operations image
