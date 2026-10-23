@@ -88,3 +88,7 @@ A integração verifica acesso cruzado entre municípios, operações negadas, a
 | V2 | Inteligência jurídica, documentos e simulação financeira com revisão humana |
 | V3 | Fontes internacionais e rede de fomento |
 | V4 | Analisador de propostas com nota preliminar, lacunas e recomendações explicáveis |
+
+### Modelo de ameaça do contexto RLS
+
+O parâmetro `app.municipality_id` não é prova criptográfica de identidade: qualquer sessão PostgreSQL com execução arbitrária de SQL poderia defini-lo. A aplicação precisa impedir SQL arbitrário, validar o JWT assinado e sempre derivar o município da sessão. A defesa de banco evita vazamentos por consultas sem filtro, mas não substitui prevenção de SQL injection e penteste.
