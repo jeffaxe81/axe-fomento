@@ -12,7 +12,8 @@
     "db:seed": "node scripts/seed.mjs",
     "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
     "db:provision": "node scripts/provision-app-role.mjs",
-    "db:cleanup-auth": "node scripts/cleanup-auth.mjs"
+    "db:cleanup-auth": "node scripts/cleanup-auth.mjs",
+    "admin:reset-mfa": "node scripts/reset-mfa-admin.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
