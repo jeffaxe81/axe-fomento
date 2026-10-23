@@ -17,39 +17,36 @@ Plataforma web para apoiar municípios na identificação de oportunidades de fo
 
 Requisitos: Node.js 22, npm e PostgreSQL 17 (ou Docker).
 
+Crie `.env` com `DATABASE_ADMIN_URL` (só operações administrativas), `DATABASE_URL` (usuário `fomento_app`), `APP_DB_PASSWORD`, `SESSION_SECRET` e `APP_ORIGIN`.
+
 ```bash
-cp .env.example .env
-# Configure DATABASE_URL e SESSION_SECRET (>=32 caracteres aleatórios).
 npm install --no-audit --no-fund
 npm run db:migrate
+npm run db:provision
 npm run db:seed
-ADMIN_EMAIL=admin@exemplo.gov.br ADMIN_PASSWORD='SenhaAleatoriaMuitoForte123!' \
-ADMIN_NAME='Administrador Municipal' MUNICIPALITY_NAME='Cidade de Teste' MUNICIPALITY_UF=SC \
+# Configure ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, MUNICIPALITY_NAME, MUNICIPALITY_UF
 npm run admin:bootstrap
 npm run dev
 ```
 
-Acesse `http://localhost:3000`.
-
 ### Docker Compose
-Crie `.env` com `POSTGRES_PASSWORD`, `SESSION_SECRET` e opcionalmente `DATABASE_URL` para operações CLI. Não use senhas do exemplo em produção.
+
+Configure `.env` com `POSTGRES_PASSWORD`, `POSTGRES_APP_PASSWORD` (24+ caracteres e diferente do admin), `SESSION_SECRET` e `APP_ORIGIN`.
 
 ```bash
-docker compose up -d --build
-docker compose exec web npm run db:migrate
-docker compose exec web npm run db:seed
-docker compose exec -e ADMIN_EMAIL=admin@exemplo.gov.br \
-  -e ADMIN_PASSWORD='SenhaAleatoriaMuitoForte123!' \
-  -e ADMIN_NAME='Administrador Municipal' \
-  -e MUNICIPALITY_NAME='Cidade de Teste' -e MUNICIPALITY_UF=SC \
-  web npm run admin:bootstrap
+docker compose up -d db
+docker compose --profile setup run --rm setup npm run db:migrate
+docker compose --profile setup run --rm setup npm run db:provision
+docker compose --profile setup run --rm setup npm run db:seed
+# Para bootstrap: execute npm run admin:bootstrap no serviço efêmero setup, com ADMIN_*.
+docker compose up -d --build web
 ```
 
-> A porta 3000 expõe o serviço apenas no loopback do host. Use proxy reverso com TLS para acesso remoto. Ajuste firewalls e cookies seguros na implantação.
+O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TESTES.md`. Use HTTPS para acesso remoto.
 
 ## Segurança e limitações
-- Há escopo por município nas leituras e escritas de projetos e controle de função para editar o perfil.
-- A V1 **ainda não contém** RLS no PostgreSQL, MFA, rate limiting distribuído, auditoria imutável, conector de editais oficiais nem verificador jurídico. Estes itens são bloqueadores para uso público/produção e constam no roadmap.
+- A branch de segurança incorpora RLS PostgreSQL, transações por município e role de aplicativo limitada; exige homologação.
+- A V1 ainda não contém MFA, rate limiting distribuído, auditoria imutável, conector de editais oficiais nem verificador jurídico. Estes itens bloqueiam o uso público até a homologação.
 - O endpoint de saúde (`GET /api/health`) verifica o banco, sem dados privados.
 - URLs e registros de exemplo não constituem oportunidades reais.
 - Cadastro público de administradores fica desabilitado: use exclusivamente o CLI de bootstrap.
@@ -58,10 +55,10 @@ docker compose exec -e ADMIN_EMAIL=admin@exemplo.gov.br \
 | Versão | Escopo |
 | --- | --- |
 | V1 | Radar, perfil municipal, projetos e filtros iniciais |
-| V1.1 | Ingestão oficial verificável, RLS, auditoria, controles de segurança e gestão de ciclo de vida |
+| V1.1 | Ingestão oficial verificável, homologação de RLS, auditoria, controles de segurança e gestão de ciclo de vida |
 | V2 | Inteligência jurídica, análise documental, IA/RAG e simulador financeiro |
 | V3 | Rede nacional e internacional de fomento |
 | V4 | Avaliador inteligente de propostas (nota, parecer preliminar, lacunas e recomendações) |
 
 ## Testes
-`npm test` executa o algoritmo de match; `npm run lint` valida TypeScript. Para homologação antes de produção faltam testes de integração com banco, segurança e caixa-preta.
+`npm test` executa o algoritmo de match; `npm run lint` valida TypeScript. Há testes de integração e segurança no CI. Ainda faltam homologação de instalação, caixa-preta completa e verificação independente.

@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { query, type Municipality, type Opportunity } from '@/lib/db';
+import { queryForMunicipality, type Municipality, type Opportunity } from '@/lib/db';
 import { evaluateMatch } from '@/lib/match.mjs';
 import { formatMoney } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 export default async function Home() {
   const user = await requireSession();
-  const [city] = await query<Municipality>('SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
-  const opportunities = await query<Opportunity & { is_example: boolean }>(`SELECT id, title, provider, source_url, to_char(deadline,'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 80`);
-  const [stats] = await query<{ total: string; preparation: string; submitted: string }>(`SELECT count(*)::text AS total, count(*) FILTER (WHERE status IN ('rascunho','preparacao'))::text AS preparation, count(*) FILTER (WHERE status='submetido')::text AS submitted FROM projects WHERE municipality_id=$1`, [user.municipality_id]);
+  const [city] = await queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
+  const opportunities = await queryForMunicipality<Opportunity & { is_example: boolean }>(user.municipality_id, `SELECT id, title, provider, source_url, to_char(deadline,'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 80`);
+  const [stats] = await queryForMunicipality<{ total: string; preparation: string; submitted: string }>(user.municipality_id, `SELECT count(*)::text AS total, count(*) FILTER (WHERE status IN ('rascunho','preparacao'))::text AS preparation, count(*) FILTER (WHERE status='submetido')::text AS submitted FROM projects WHERE municipality_id=$1`, [user.municipality_id]);
   const ranked = opportunities.map(o => ({ ...o, match: evaluateMatch(city, o) })).sort((a, b) => b.match.score - a.match.score);
   const eligible = ranked.filter(o => o.match.eligible);
   return <>

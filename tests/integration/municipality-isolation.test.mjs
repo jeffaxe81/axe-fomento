@@ -8,12 +8,12 @@ import bcrypt from 'bcryptjs';
 if (process.env.RUN_TEST_DB_ISOLATION !== 'yes') {
   throw new Error('Defina RUN_TEST_DB_ISOLATION=yes somente em ambiente de testes isolado.');
 }
-if (!process.env.DATABASE_URL || !process.env.TEST_BASE_URL) {
-  throw new Error('DATABASE_URL e TEST_BASE_URL são obrigatórios.');
+if (!process.env.DATABASE_ADMIN_URL || !process.env.TEST_BASE_URL) {
+  throw new Error('DATABASE_ADMIN_URL e TEST_BASE_URL são obrigatórios.');
 }
 
 test('Prefeituras A e B não compartilham projetos ou edições de perfil', async () => {
-  const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  const db = new pg.Client({ connectionString: process.env.DATABASE_ADMIN_URL });
   await db.connect();
   const base = process.env.TEST_BASE_URL;
   const suffix = randomUUID().slice(0, 8);
