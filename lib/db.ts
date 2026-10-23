@@ -14,7 +14,7 @@ export async function query<T extends QueryResultRow>(sql:string,params:unknown[
 }
 /** Set tenant from a VERIFIED server session, scoped to one database transaction. */
 export async function queryForMunicipality<T extends QueryResultRow>(
-  municipalityId:string, sql:string, params:unknown[]=[]
+  municipalityId:string, sql:string, params:unknown[]=[], actorId?:string
 ):Promise<T[]> {
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(municipalityId))
     throw new Error('Contexto municipal inválido');
@@ -23,6 +23,11 @@ export async function queryForMunicipality<T extends QueryResultRow>(
   try {
     await client.query('BEGIN');active=true;
     await client.query("SELECT set_config('app.tenant_id',$1,true)",[municipalityId]);
+    if(actorId) {
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actorId))
+        throw new Error('Identidade do ator inválida');
+      await client.query("SELECT set_config('app.actor_id',$1,true)",[actorId]);
+    }
     const result=await client.query<T>(sql,params);
     await client.query('COMMIT');active=false;
     return result.rows;
