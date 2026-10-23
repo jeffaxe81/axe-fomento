@@ -21,7 +21,9 @@ try {
   await db.query('GRANT SELECT, UPDATE (ibge_code,population,priority_areas) ON public.municipalities TO fomento_app');
   await db.query('GRANT SELECT(id,municipality_id,full_name,email,role,active) ON public.users TO fomento_app');
   await db.query('GRANT EXECUTE ON FUNCTION public.auth_login(text,text) TO fomento_app');
-  await db.query('GRANT EXECUTE ON FUNCTION public.auth_session_user(uuid) TO fomento_app');
+  await db.query('GRANT EXECUTE ON FUNCTION public.auth_session_user(uuid,uuid) TO fomento_app');
+  await db.query('GRANT EXECUTE ON FUNCTION public.auth_revoke_session(uuid,uuid) TO fomento_app');
+  await db.query('GRANT EXECUTE ON FUNCTION public.auth_consume_limit(text) TO fomento_app');
   await db.query('COMMIT');
   console.log('Role fomento_app provisionada com acesso restrito e RLS.');
 } catch(e){try {await db.query('ROLLBACK')} catch {} throw e;} finally {await db.end();}
