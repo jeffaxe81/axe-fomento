@@ -5,6 +5,9 @@ function getPool(): Pool {
   // DATABASE_URL must point to fomento_app, never the migration account.
   const url=process.env.DATABASE_URL;
   if(!url) throw new Error('DATABASE_URL não definida');
+  // Fail closed in production if a privileged database credential is misconfigured.
+  if(process.env.NODE_ENV==='production' && decodeURIComponent(new URL(url).username)!=='fomento_app')
+    throw new Error('A aplicação deve conectar ao PostgreSQL exclusivamente como fomento_app');
   if(!globalPool.__fomentoPool) globalPool.__fomentoPool=new Pool({connectionString:url,max:10});
   return globalPool.__fomentoPool;
 }
