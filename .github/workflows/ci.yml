@@ -21,7 +21,9 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
+      DATABASE_ADMIN_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
+      DATABASE_URL: postgresql://fomento_app:ci_app_password_only_2026_test@127.0.0.1:5432/fomento_test
+      APP_DB_PASSWORD: ci_app_password_only_2026_test
       SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
       APP_ORIGIN: http://127.0.0.1:3000
       TEST_BASE_URL: http://127.0.0.1:3000
@@ -40,6 +42,8 @@ jobs:
         run: npm run lint
       - name: Initialize test database
         run: npm run db:migrate
+      - name: Provision restricted application role
+        run: npm run db:provision
       - name: Build
         run: npm run build
       - name: Start web service
