@@ -124,3 +124,11 @@ REVOKE ALL ON FUNCTION public.auth_mfa_login_secret(uuid,uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.auth_mfa_complete(uuid,uuid,bigint) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.auth_list_sessions(uuid,uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.auth_revoke_other_sessions(uuid,uuid) FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION public.auth_mfa_status(p_user uuid,p_sid uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+  SELECT EXISTS(SELECT 1 FROM public.users u JOIN public.user_sessions s ON s.user_id=u.id
+    WHERE u.id=p_user AND s.id=p_sid AND s.mfa_verified AND s.revoked_at IS NULL
+      AND s.expires_at>now() AND u.active AND u.mfa_enabled)
+$$;
+REVOKE ALL ON FUNCTION public.auth_mfa_status(uuid,uuid) FROM PUBLIC;
