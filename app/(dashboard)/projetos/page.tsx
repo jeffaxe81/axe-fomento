@@ -1,0 +1,10 @@
+import Link from 'next/link';
+import { requireSession } from '@/lib/auth';
+import { query, type Project } from '@/lib/db';
+export const dynamic = 'force-dynamic';
+const statusLabels: Record<string, string> = { rascunho: 'Rascunho', preparacao: 'Em preparação', submetido: 'Submetido', aprovado: 'Aprovado', recusado: 'Não aprovado' };
+export default async function Projects() {
+  const user = await requireSession();
+  const projects = await query<Project>(`SELECT p.id, p.title, p.status, p.created_at, o.title AS opportunity_title, u.full_name AS owner_name FROM projects p LEFT JOIN opportunities o ON o.id = p.opportunity_id LEFT JOIN users u ON u.id = p.owner_user_id WHERE p.municipality_id=$1 ORDER BY p.created_at DESC LIMIT 100`, [user.municipality_id]);
+  return <><div className="section-eyebrow">GESTÃO DE CAPTAÇÃO</div><div className="page-heading"><div><h1>Meus projetos</h1><p>Centralize propostas e acompanhe o andamento das candidaturas.</p></div><Link href="/oportunidades" className="btn btn-primary">+ Novo projeto</Link></div><section className="panel"><div className="panel-heading"><h3>Portfólio de projetos</h3><span>{projects.length} registrados</span></div>{projects.length ? <div className="table-scroll"><table><thead><tr><th>Projeto</th><th>Oportunidade</th><th>Responsável</th><th>Situação</th><th>Registro</th></tr></thead><tbody>{projects.map(p => <tr key={p.id}><td><b>{p.title}</b></td><td>{p.opportunity_title ?? 'Oportunidade removida'}</td><td>{p.owner_name ?? 'Não atribuído'}</td><td><span className="status-pill">{statusLabels[p.status] ?? p.status}</span></td><td>{new Date(p.created_at).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></div> : <div className="empty-state"><div className="empty-symbol">▤</div><h3>Você ainda não possui projetos cadastrados</h3><p>Encontre uma oportunidade no radar para iniciar uma proposta.</p><Link href="/oportunidades" className="btn btn-primary">Ir para o radar →</Link></div>}</section></>;
+}

@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+        env:
+          DATABASE_URL: postgresql://app:app@localhost:5432/fomento
+          SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
