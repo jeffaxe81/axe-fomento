@@ -1,0 +1,94 @@
+name: ci
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: fomento_test
+          POSTGRES_USER: fomento
+          POSTGRES_PASSWORD: test_password_local_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fomento -d fomento_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_ADMIN_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
+      DATABASE_URL: postgresql://fomento_app:ci_app_password_only_2026_test@127.0.0.1:5432/fomento_test
+      APP_DB_PASSWORD: ci_app_password_only_2026_test
+      SESSION_SECRET: 'ci_only_secret_please_do_not_use_in_production_123'
+      MFA_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+      APP_ORIGIN: http://127.0.0.1:3000
+      TEST_BASE_URL: http://127.0.0.1:3000
+      RUN_TEST_DB_ISOLATION: 'yes'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Type check
+        run: npm run lint
+      - name: Initialize test database
+        run: npm run db:migrate
+      - name: Verify repeatable migrations and checksums
+        run: |
+          npm run db:migrate
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==5)process.exit(1);await db.end();"
+      - name: Provision restricted application role
+        run: npm run db:provision
+      - name: Build
+        run: npm run build
+      - name: Start web service
+        run: |
+          npm run start -- --port 3000 > /tmp/axe-fomento-server.log 2>&1 &
+          echo $! > /tmp/axe-fomento-server.pid
+      - name: Wait for web service
+        run: |
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/axe-fomento-server.log
+          exit 1
+      - name: Tenant isolation and HTTP security integration
+        run: node --test tests/integration/*.test.mjs
+      - name: Check restricted PostgreSQL role grants
+        run: node --test tests/security/role-grants.test.mjs
+      - name: Build Docker image
+        run: docker build --tag axe-fomento:ci .
+      - name: Build isolated operations image
+        run: docker build --file Dockerfile.operations --tag axe-fomento-operations:ci .
+      - name: Verify encrypted database backup and isolated restore
+        env:
+          BACKUP_ENCRYPTION_KEY: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE='
+        run: |
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();await db.query('CREATE DATABASE fomento_restore_ci');await db.end();"
+          docker run --rm --network host \
+            --env DATABASE_ADMIN_URL --env BACKUP_ENCRYPTION_KEY \
+            --env RESTORE_TARGET_URL=postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_restore_ci \
+            --env RESTORE_CONFIRMATION=RESTORE_DISPOSABLE_DATABASE \
+            -v axe-fomento-ci-backups:/backups axe-fomento-operations:ci sh -ec '
+              node scripts/backup-db.mjs
+              export BACKUP_FILE=$(find /backups -name "*.dump.enc" | head -1)
+              node scripts/verify-backup.mjs
+              node scripts/restore-test-db.mjs
+            '
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL.replace('/fomento_test','/fomento_restore_ci')});await db.connect();const r=await db.query(\"SELECT to_regclass('public.projects') IS NOT NULL AS restored\");if(!r.rows[0].restored)process.exit(1);await db.end();"
+      - name: Dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Show server logs when failing
+        if: failure()
+        run: cat /tmp/axe-fomento-server.log || true
