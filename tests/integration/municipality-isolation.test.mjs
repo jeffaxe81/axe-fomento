@@ -54,6 +54,17 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     assert.ok((await viewA.text()).includes(projectName), 'Prefeitura A vê seu próprio projeto');
     assert.ok(!(await viewB.text()).includes(projectName), 'Prefeitura B não pode consultar projeto de A');
 
+    const crossTenantMarker = 'projeto-exclusivo-b-' + suffix;
+    const createBMarker = await fetch(base + '/api/projects', {
+      method: 'POST', headers: headersB,
+      body: JSON.stringify({ title: crossTenantMarker, opportunityId: opportunity })
+    });
+    assert.equal(createBMarker.status, 201, 'Prefeitura B cria projeto próprio');
+    const bPage = await fetch(base + '/projetos', { headers: { cookie: cookieB } });
+    const aPage = await fetch(base + '/projetos', { headers: { cookie: cookieA } });
+    assert.ok((await bPage.text()).includes(crossTenantMarker), 'Prefeitura B visualiza seu projeto');
+    assert.ok(!(await aPage.text()).includes(crossTenantMarker), 'Prefeitura A não visualiza projeto de B');
+
     const anon = await fetch(base + '/api/projects', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ title: 'Sem sessão', opportunityId: opportunity })
