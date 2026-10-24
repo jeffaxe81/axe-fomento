@@ -38,3 +38,20 @@ test('avalia prazo com data de referência reproduzível', () => {
   assert.equal(closed.eligible, false);
   assert.equal(closed.band, 'Encerrada');
 });
+
+test('prazo ausente não é tratado como encerrado', () => {
+  const result = evaluateMatch(city, { ...opportunity, deadline: null }, new Date('2026-10-23T12:00:00Z'));
+  assert.equal(result.eligible, true);
+  assert.notEqual(result.band, 'Encerrada');
+});
+test('oportunidade com prazo futuro permanece disponível', () => {
+  const result = evaluateMatch(city, { ...opportunity, deadline: '2026-11-30' }, new Date('2026-10-23T12:00:00Z'));
+  assert.equal(result.eligible, true);
+});
+test('não modifica os dados fornecidos ao calcular aderência', () => {
+  const municipality = { ...city, priority_areas: [...city.priority_areas] };
+  const edital = { ...opportunity, areas: [...opportunity.areas] };
+  const before = JSON.stringify({ municipality, edital });
+  evaluateMatch(municipality, edital, new Date('2026-10-23T12:00:00Z'));
+  assert.equal(JSON.stringify({ municipality, edital }), before);
+});
