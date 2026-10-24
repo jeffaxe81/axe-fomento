@@ -113,6 +113,14 @@ test('Prefeituras A e B não compartilham projetos ou edições de perfil', asyn
     assert.equal(attackPage.status, 200);
     assert.ok(!(await attackPage.text()).includes('<img src=x onerror=alert(1)>'), 'HTML malicioso não pode ser interpretado pelo navegador');
 
+    const [bProjectAudit] = (await db.query(
+      "SELECT actor_user_id,municipality_id FROM audit_events WHERE action='project.insert' AND record_id=$1",
+      [(await createBMarker.json()).id]
+    )).rows;
+    assert.ok(bProjectAudit, 'Criação de projeto B deve gerar auditoria');
+    assert.equal(bProjectAudit.actor_user_id, bUser, 'Auditoria deve identificar autor B');
+    assert.equal(bProjectAudit.municipality_id, b, 'Auditoria deve identificar município B');
+
     const forbidden = await fetch(base + '/api/municipality', {
       method: 'PATCH', headers: headersB,
       body: JSON.stringify({ ibgeCode: null, population: 98765, priorityAreas: ['segurança'] })
