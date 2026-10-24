@@ -30,3 +30,11 @@ test('limita a pontuação em 100', () => {
   const r = evaluateMatch(city, { ...opportunity, eligible_ufs: ['SC'], areas: ['saúde', 'educação'], min_population: 10000 });
   assert.equal(r.score, 100);
 });
+
+test('avalia prazo com data de referência reproduzível', () => {
+  const open = evaluateMatch(city, { ...opportunity, deadline: '2026-10-23' }, new Date('2026-10-23T12:00:00Z'));
+  const closed = evaluateMatch(city, { ...opportunity, deadline: '2026-10-23' }, new Date('2026-10-24T00:00:00Z'));
+  assert.equal(open.eligible, true);
+  assert.equal(closed.eligible, false);
+  assert.equal(closed.band, 'Encerrada');
+});
