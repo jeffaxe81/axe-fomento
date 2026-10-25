@@ -23,3 +23,18 @@ test('não altera a lista original', () => {
   filterOpportunities(data, { area: 'saúde' });
   assert.equal(JSON.stringify(data), before);
 });
+
+test('busca tolera espaços e não diferencia caixa', () => {
+  assert.deepEqual(filterOpportunities(data, { query: '  ESCOLAS  ' }), [data[1]]);
+});
+test('área aceita caixa diferente', () => {
+  assert.deepEqual(filterOpportunities(data, { area: 'SAÚDE' }), [data[0]]);
+});
+test('dados sem título, órgão ou áreas não causam erro', () => {
+  const partial = [{ title: null, provider: null, areas: null }];
+  assert.deepEqual(filterOpportunities(partial, { query: 'saúde' }), []);
+  assert.deepEqual(filterOpportunities(partial, { area: 'saúde' }), []);
+});
+test('rejeita lista de entrada inválida', () => {
+  assert.throws(() => filterOpportunities(null), TypeError);
+});
