@@ -17,7 +17,11 @@ test('Carteira municipal: busca, filtro, paginação e ficha do projeto', async 
   const opportunityTitle = 'Fonte fictícia ' + suffix;
   const password = 'Somente-Teste-Carteira-2026!';
   const titles = Array.from({ length: 30 }, (_, i) => prefix + ' projeto ' + String(i + 1).padStart(2, '0'));
-  titles[0] += ' %_';
+  titles[0] += ' %';
+  titles[1] += ' _';
+  const ids = titles.map(() => randomUUID());
+  [ids[2], ids[3]] = [ids[2], ids[3]].sort();
+  const ownerName = 'Gestora da carteira ' + suffix;
   const cities = [];
   let opportunityId;
 
@@ -61,12 +65,16 @@ test('Carteira municipal: busca, filtro, paginação e ficha do projeto', async 
       [opportunityTitle],
     );
     opportunityId = opportunity.id;
+    const { rows: [owner] } = await db.query(
+      'INSERT INTO users(municipality_id, full_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id',
+      [cityA.id, ownerName, 'gestora-' + suffix + '@example.invalid', hash],
+    );
     const { rows: projects } = await db.query(
-      'INSERT INTO projects (municipality_id, owner_user_id, opportunity_id, title, status, created_at) ' +
-      "SELECT $1, $2, $3, title, CASE WHEN n IN (6, 30) THEN 'preparacao' ELSE 'rascunho' END, " +
-      "TIMESTAMPTZ '2026-10-01 12:00:00Z' + n * INTERVAL '1 minute' " +
-      'FROM unnest($4::text[]) WITH ORDINALITY AS input(title, n) RETURNING id, title',
-      [cityA.id, cityA.userId, opportunityId, titles],
+      'INSERT INTO projects (id, municipality_id, owner_user_id, opportunity_id, title, status, created_at) ' +
+      "SELECT id, $1, $2, $3, title, CASE WHEN n IN (6, 30) THEN 'preparacao' ELSE 'rascunho' END, " +
+      "TIMESTAMPTZ '2026-10-01 12:00:00Z' + (CASE WHEN n = 4 THEN 3 ELSE n END) * INTERVAL '1 minute' " +
+      'FROM unnest($4::text[], $5::uuid[]) WITH ORDINALITY AS input(title, id, n) RETURNING id, title',
+      [cityA.id, owner.id, opportunityId, titles, ids],
     );
     const cityBTitle = 'Projeto exclusivo da prefeitura B ' + suffix;
     await db.query(
@@ -79,10 +87,15 @@ test('Carteira municipal: busca, filtro, paginação e ficha do projeto', async 
       assert.equal(byTitle.status, 200);
       assert.ok(byTitle.html.includes(titles[26]));
       assert.ok(!byTitle.html.includes(titles[25]));
-      const literal = await getPage('/projetos?busca=%25_', cityA);
-      assert.equal(literal.status, 200);
-      assert.ok(literal.html.includes(titles[0]));
-      assert.ok(!literal.html.includes(titles[1]));
+      const percent = await getPage('/projetos?busca=%25', cityA);
+      assert.equal(percent.status, 200);
+      assert.ok(percent.html.includes(titles[0]));
+      assert.ok(!percent.html.includes(titles[1]));
+
+      const underscore = await getPage('/projetos?busca=_', cityA);
+      assert.equal(underscore.status, 200);
+      assert.ok(underscore.html.includes(titles[1]));
+      assert.ok(!underscore.html.includes(titles[0]));
     });
 
     await t.test('combina filtro por situação e termo de busca', async () => {
@@ -102,12 +115,18 @@ test('Carteira municipal: busca, filtro, paginação e ficha do projeto', async 
       const first = await getPage('/projetos?' + filters, cityA);
       assert.equal(first.status, 200);
       assert.ok(first.html.includes(titles[28]));
+      assert.ok(first.html.includes(titles[3]));
+      assert.ok(!first.html.includes(titles[2]));
+      assert.equal((first.html.match(/href="\/projetos\/[0-9a-f-]+"/g) ?? []).length, 25);
       assert.ok(!first.html.includes(titles[0]));
       assert.ok(first.html.includes('href="/projetos?' + filters.replace('&', '&amp;') + '&amp;pagina=2"'));
 
       const second = await getPage('/projetos?' + filters + '&pagina=2', cityA);
       assert.equal(second.status, 200);
       assert.ok(second.html.includes(titles[0]));
+      assert.ok(second.html.includes(titles[2]));
+      assert.ok(!second.html.includes(titles[3]));
+      assert.equal((second.html.match(/href="\/projetos\/[0-9a-f-]+"/g) ?? []).length, 3);
       assert.ok(!second.html.includes(titles[28]));
       assert.ok(!second.html.includes(titles[5]));
 
@@ -133,7 +152,7 @@ test('Carteira municipal: busca, filtro, paginação e ficha do projeto', async 
       const own = await getPage(path, cityA);
       assert.equal(own.status, 200);
       assert.ok(own.html.includes(project.title));
-      assert.ok(own.html.includes(cityA.name));
+      assert.ok(own.html.includes(ownerName));
       assert.ok(own.html.includes(opportunityTitle));
       assert.ok(own.html.includes('FICTÍCIO / TESTE'));
 

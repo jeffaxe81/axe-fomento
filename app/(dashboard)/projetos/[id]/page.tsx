@@ -17,7 +17,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   return <>
     <div className="section-eyebrow">GESTÃO DE CAPTAÇÃO</div>
-    <div className="page-heading">
+    <div className="page-heading project-detail-heading">
       <div>
         <h1>{project.title}</h1>
         <p>Ficha do projeto municipal</p>

@@ -45,7 +45,7 @@ export default async function Projects({ searchParams }: { searchParams: Promise
         </select>
       </label>
       <button type="submit" className="btn btn-primary">Filtrar</button>
-      <Link href="/projetos" className="btn btn-light">Limpar</Link>
+      <a href="/projetos" className="btn btn-light">Limpar</a>
     </form>
 
     <section className="panel">
