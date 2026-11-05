@@ -148,3 +148,19 @@
 .governance-panels .btn:focus-visible,.governance-form input:focus-visible,.governance-form select:focus-visible{
  outline:3px solid #0a987f;outline-offset:2px}
 @media(max-width:700px){.governance-form .btn{width:100%}.governance-user .btn{flex:1 1 auto}}
+
+/* AF-012: perfil CAPAG documentado */
+.capag-panel{margin-top:18px}
+.capag-panel h2{font-size:18px}
+.capag-summary{display:flex;align-items:flex-start;gap:18px;border:1px solid var(--line);border-radius:10px;padding:18px;margin:18px 0}
+.capag-grade{font-size:36px;min-width:80px;display:grid;place-items:center;background:#eef5fa;border-radius:9px;padding:15px}
+.capag-summary div{min-width:0;flex:1}
+.capag-summary p{font-size:12px;line-height:1.7;margin:9px 0}
+.capag-summary a{font-size:12px;color:#246884;text-decoration:underline;overflow-wrap:anywhere}
+.capag-form{max-width:740px;border-top:1px solid var(--line);padding-top:16px;margin-top:18px;display:grid;gap:14px}
+.capag-form h3{font-size:16px;margin:0}
+.capag-form label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.capag-form input,.capag-form select{width:100%;min-width:0;padding:10px 12px;border:1px solid #dce5ed;border-radius:8px;background:white;color:var(--ink)}
+.capag-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.capag-form .btn{justify-self:start}
+@media(max-width:650px){.capag-form-grid{grid-template-columns:1fr}.capag-summary{flex-direction:column}.capag-form .btn{width:100%}}
