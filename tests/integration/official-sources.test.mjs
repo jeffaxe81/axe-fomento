@@ -123,7 +123,7 @@ test('Fontes oficiais: curadoria, versões, RLS, permissões e falha fechada',as
           await app.query("SELECT set_config('app.tenant_id',$1,true)",[a]);
           await app.query("SELECT set_config('app.actor_id',$1,true)",[adminA.id]);
           const result=await app.query(STAGE_PROGRAM_SQL,
-            [a,adminA.id,sourceKey,ext,title,provider,sourceUrl,hash]);
+            [a,sourceKey,ext,title,provider,sourceUrl,hash]);
           await app.query('COMMIT');
           return result.rows[0];
         }catch(error){await app.query('ROLLBACK');throw error;}

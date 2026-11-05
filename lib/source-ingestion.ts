@@ -52,7 +52,7 @@ export async function stageProgram(municipalityId: string, actorId: string, item
   const [row] = await queryForMunicipality<{ version: number; new_version: boolean }>(
     municipalityId,
     STAGE_PROGRAM_SQL,
-    [municipalityId,actorId,SOURCE_KEY,item.externalId,item.title,item.provider,item.sourceUrl,checksum],
+    [municipalityId,SOURCE_KEY,item.externalId,item.title,item.provider,item.sourceUrl,checksum],
     actorId,
   );
   return row;
