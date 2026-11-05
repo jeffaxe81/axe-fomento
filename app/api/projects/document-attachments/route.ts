@@ -44,7 +44,7 @@ export async function POST(request:Request){
   const bytes=await readBounded(request);
   if(!bytes)return NextResponse.json({error:'Formulário excede o tamanho permitido'},{status:413});
   form=await new Request(request.url,{method:'POST',headers:{'content-type':contentType},
-   body:new Blob([bytes])}).formData();
+   body:new Blob([bytes.buffer as ArrayBuffer])}).formData();
  }catch{return NextResponse.json({error:'Formulário multipart inválido'},{status:400});}
  const projectId=form.get('projectId'),itemId=form.get('itemId'),note=form.get('note'),file=form.get('file');
  if(typeof projectId!=='string'||!uuid.safeParse(projectId).success||
