@@ -22,7 +22,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <h1>{project.title}</h1>
         <p>Ficha do projeto municipal</p>
       </div>
-      <Link href="/projetos" className="btn btn-outline">← Voltar aos projetos</Link>
+      <div className="radar-actions">
+        <Link href={'/projetos/'+project.id+'/requisitos'} className="btn btn-primary">Matriz de requisitos</Link>
+        <Link href="/projetos" className="btn btn-outline">← Voltar aos projetos</Link>
+      </div>
     </div>
     <section className="panel wide">
       <h2 className="project-panel-title">Dados do projeto</h2>
