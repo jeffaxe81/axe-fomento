@@ -17,6 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {user.role === 'admin' && <Link href="/fontes">⊞ <span>Fontes oficiais</span></Link>}
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
         <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>
+        {user.role === 'admin' && <Link href="/administracao/usuarios">♧ <span>Usuários municipais</span></Link>}
       </nav>
       <div className="sidebar-bottom"><div className="municipality-tag"><small>MUNICÍPIO ATIVO</small><strong>{city.name} / {city.uf}</strong></div><div className="version">V1 · MVP de validação</div></div>
     </aside>

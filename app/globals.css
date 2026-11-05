@@ -124,3 +124,27 @@
 .requirement-assessment { margin-top:18px;padding:16px;border-radius:10px;background:#f8fafc;display:grid;gap:12px;max-width:700px; }
 .requirement-create .btn,.requirement-assessment .btn { justify-self:start;white-space:normal; }
 @media(max-width:700px){.requirement-form-grid{grid-template-columns:1fr}.requirement-stats{grid-template-columns:1fr}.requirement-assessment .btn{width:100%;}}
+
+/* AF-015/016: convites de uso único e administração acessível de contas */
+.governance-panels{display:grid;gap:18px}
+.governance-panels .panel h2{font-size:17px;margin-bottom:12px}
+.governance-form{display:grid;gap:14px;max-width:650px;margin-top:15px}
+.governance-form label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.governance-form input,.governance-form select{border:1px solid #dce5ed;border-radius:8px;padding:11px;min-width:0;width:100%;background:white;color:var(--ink)}
+.governance-form .btn{justify-self:start}
+.governance-secret{margin-top:18px;padding:15px;border:1px solid #e3dfb1;background:#fffbed;border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.governance-secret>p{flex-basis:100%;margin:0}
+.governance-secret code{display:block;width:100%;overflow-wrap:anywhere;font-size:15px;padding:10px;background:white;border-radius:7px}
+.governance-secret small{font-size:11px;color:#6b7279}
+.governance-rows{display:grid}
+.governance-user{padding:16px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.governance-user-info{min-width:0;display:grid;gap:5px;flex:1 1 210px}
+.governance-user-info strong{font-size:13px}
+.governance-user-info span{font-size:12px;color:#64778a;overflow-wrap:anywhere}
+.governance-user-info small{font-size:11px;color:#8090a0}
+.governance-confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.governance-confirm span{font-size:11px;color:#ad3541;flex-basis:100%}
+.governance-panels .table-scroll{max-width:100%}
+.governance-panels .btn:focus-visible,.governance-form input:focus-visible,.governance-form select:focus-visible{
+ outline:3px solid #0a987f;outline-offset:2px}
+@media(max-width:700px){.governance-form .btn{width:100%}.governance-user .btn{flex:1 1 auto}}
