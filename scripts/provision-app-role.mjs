@@ -17,6 +17,12 @@ try {
   await db.query('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM fomento_app');
   await db.query('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM fomento_app');
   await db.query('GRANT SELECT ON public.opportunities TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,UPDATE ON public.municipal_capag TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_capag_history TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_document_templates TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_document_checklists TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_document_items TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_document_events TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.opportunity_requirements TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_requirement_assessments TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_requirement_events TO fomento_app');
