@@ -17,6 +17,8 @@ try {
   await db.query('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM fomento_app');
   await db.query('REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM fomento_app');
   await db.query('GRANT SELECT ON public.opportunities TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,DELETE ON public.opportunity_favorites TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,UPDATE,DELETE ON public.saved_opportunity_searches TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE,DELETE ON public.projects TO fomento_app');
   await db.query('GRANT SELECT, UPDATE (ibge_code,population,priority_areas) ON public.municipalities TO fomento_app');
   await db.query('GRANT SELECT(id,municipality_id,full_name,email,role,active) ON public.users TO fomento_app');
