@@ -105,6 +105,14 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **Segurança.** Políticas RLS bloqueiam acesso cruzado entre prefeituras e também entre dois usuários da mesma prefeitura. APIs mutáveis exigem sessão, validação de campos e proteção de origem.
 - **Validação.** Testes de integração e ensaios negativos de RLS adicionados. Os itens permanecem sujeitos à aprovação do CI do commit e homologação na issue #13.
 
+## Quarto incremento — base de dados oficiais (pré-homologação)
+
+- **AF-009.** Conector de programas do módulo Gestão de Parcerias, com HTTPS fixo, limite de consumo, validação de estrutura, identificador externo, deduplicação por prefeitura e registro de execução. A coleta é **desabilitada por padrão** até revisão do contrato real e condições de uso. Programas permanecem na área de curadoria, não no radar público.
+- **AF-010.** Histórico de versões por programa com checksum e comparação de mudanças em título, órgão e referência de origem. Nova versão exige nova revisão.
+- **AF-011.** Fila municipal de programas coletados; somente admin registra aprovação/rejeição com justificativa, trilha de decisões e rejeição de versões obsoletas.
+- **Qualidade e segurança.** Isolamento RLS por município, rotas protegidas, dados fictícios nos testes, validação de campos e sem inferência de prazo/valor. A ingestão real e publicação de editais exigem homologação separada.
+- **Status:** implementadas no código como fluxo experimental, pendentes de prova com dados reais e aceite operacional. Ver `docs/FONTES_OFICIAIS_TRANSFEREGOV.md` e issue #13.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
