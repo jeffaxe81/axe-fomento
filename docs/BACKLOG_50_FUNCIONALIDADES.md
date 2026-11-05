@@ -150,6 +150,17 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   homologação operacional pendente.
 - **Manual:** `docs/CAPAG_E_CHECKLIST_DOCUMENTAL.md`.
 
+## Oitavo incremento — AF-018, anexos com versões privadas
+
+- Anexos PDF/PNG/JPEG de até 2 MiB, até 20 versões por documento, mantidas sem
+  sobrescrita, com autoria, justificativa e data.
+- Dados criptografados com AES-256-GCM antes do banco; download com sessão,
+  política RLS e cabeçalhos contra cache/incorporação.
+- Controle negativo de origem, extensão/MIME, tamanho, corrupção e acesso cruzado.
+- **Flag `ENABLE_DOCUMENT_UPLOADS=no` por padrão**: ainda não há AV/quarentena,
+  quota, retenção e homologação operacional. Integrado e testado apenas no CI.
+- Manual: `docs/ANEXOS_VERSIONADOS_AF018.md`. Não ativar em produção.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
