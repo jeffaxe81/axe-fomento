@@ -113,6 +113,19 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **Qualidade e segurança.** Isolamento RLS por município, rotas protegidas, dados fictícios nos testes, validação de campos e sem inferência de prazo/valor. A ingestão real e publicação de editais exigem homologação separada.
 - **Status:** implementadas no código como fluxo experimental, pendentes de prova com dados reais e aceite operacional. Ver `docs/FONTES_OFICIAIS_TRANSFEREGOV.md` e issue #13.
 
+## Quinto incremento — matriz de requisitos e diagnóstico (AF-013 / AF-014)
+
+- **AF-013:** administrador registra por oportunidade e município requisito obrigatório ou não,
+  versão/retificação declarada, seção, trecho textual e URL HTTPS da fonte indicada.
+- **AF-014:** equipe registra por projeto status atendido, não atendido ou pendente de comprovação,
+  com evidência/justificativa para decisões conclusivas, e contagens descritivas.
+- **Proteção:** FK composta vincula projeto e requisito à mesma oportunidade e município; RLS
+  reforça o isolamento e a política de ator na inserção. Eventos de mudança são mantidos.
+- **Limite importante:** fonte indicada e status são declarações humanas ainda não verificadas
+  automaticamente. Não há inferência de regras ou parecer jurídico, nem publicação no radar.
+- **Validação:** testes HTTP, banco e integridade, mais CI no commit relevante.
+  Detalhes em `docs/MATRIZ_REQUISITOS_DIAGNOSTICO.md`. Homologação operacional permanece NO-GO.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
