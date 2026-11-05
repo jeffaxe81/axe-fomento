@@ -24,6 +24,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </div>
       <div className="radar-actions">
         <Link href={'/projetos/'+project.id+'/requisitos'} className="btn btn-primary">Matriz de requisitos</Link>
+        <Link href={'/projetos/'+project.id+'/documentos'} className="btn btn-outline">Checklist documental</Link>
         <Link href="/projetos" className="btn btn-outline">← Voltar aos projetos</Link>
       </div>
     </div>

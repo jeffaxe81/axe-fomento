@@ -164,3 +164,18 @@
 .capag-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .capag-form .btn{justify-self:start}
 @media(max-width:650px){.capag-form-grid{grid-template-columns:1fr}.capag-summary{flex-direction:column}.capag-form .btn{width:100%}}
+
+/* AF-017: documentos por modalidade e projeto */
+.document-setup,.document-overview,.document-list{margin-bottom:18px}
+.document-setup h2,.document-overview h2,.document-list h2{font-size:18px}
+.document-form,.document-item-form{display:grid;gap:14px;max-width:720px}
+.document-form label,.document-item-form label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.document-form input,.document-form select,.document-form textarea,
+.document-item-form select,.document-item-form textarea{width:100%;min-width:0;padding:11px 12px;
+ border:1px solid #dce5ed;border-radius:8px;background:white;color:var(--ink);font:inherit;font-size:13px}
+.document-form textarea,.document-item-form textarea{resize:vertical;line-height:1.5}
+.document-form .btn,.document-item-form .btn{justify-self:start;white-space:normal}
+.document-list .document-item{padding:20px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.document-item h3{font-size:16px;margin:12px 0}
+.document-item-form{background:#f7f9fb;border-radius:9px;padding:16px;margin-top:12px}
+@media(max-width:650px){.document-form .btn,.document-item-form .btn{width:100%}}
