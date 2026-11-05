@@ -136,6 +136,20 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   expiração e SQL restrito. Manual: `docs/GOVERNANCA_CONVITES_CONTAS.md`.
 - **Status:** implementados em branch para CI e homologação; não entrar em produção.
 
+## Sétimo incremento — CAPAG e checklist documental (AF-012 / AF-017)
+
+- **AF-012:** cadastro manual versionado da classificação CAPAG, ano-base,
+  data da edição e URL oficial, com aviso claro de ausência e referência antiga.
+  Não é consulta automática nem nota homologada pelo Tesouro.
+- **AF-017:** modelos municipais de documentos por modalidade, cópia imutável
+  no checklist de cada projeto, três estados com justificativa para decisões,
+  histórico, sem anexos (AF-018).
+- **Segurança:** RLS, histórico e ator identificável; apenas admin cria modelos
+  e registra CAPAG, documentos podem ser acompanhados pela equipe autorizada.
+- **Qualidade:** integração e testes negativos para múltiplos municípios;
+  homologação operacional pendente.
+- **Manual:** `docs/CAPAG_E_CHECKLIST_DOCUMENTAL.md`.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
