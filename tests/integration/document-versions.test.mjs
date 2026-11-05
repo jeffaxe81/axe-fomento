@@ -59,10 +59,6 @@ test('AF-018: anexos privados criptografados, versão imutável e controle de ac
    templates.push(result.rows[0].id);
   }
   for(const [i,user] of [own,other].entries()){
-   const init=await call('POST','/api/projects/document-checklist',
-    JSON.stringify({projectId:projects[i],modality:'convenio'}),user);
-   // JSON helper needs explicit content-type: call raw with explicit header below instead.
-   assert.equal(init.status,400);
    const response=await fetch(base+'/api/projects/document-checklist',{method:'POST',
     headers:{origin:base,'content-type':'application/json',cookie:user.cookie},
     body:JSON.stringify({projectId:projects[i],modality:'convenio'})});
