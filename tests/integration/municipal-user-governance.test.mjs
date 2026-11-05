@@ -102,7 +102,7 @@ test('AF-015/016: convites e ciclo de vida isolados por prefeitura',async(t)=>{
      const addr='expired-'+suffix+'@example.invalid';
      const invite=await request('POST',invitePath,{email:addr,role:'analyst'},adminA);
      assert.equal(invite.status,201);
-     await admin.query("UPDATE user_invitations SET expires_at=clock_timestamp()-interval '1 second' WHERE email=$1",[addr]);
+     await admin.query("UPDATE user_invitations SET issued_at=clock_timestamp()-interval '3 days', expires_at=clock_timestamp()-interval '1 day' WHERE email=$1",[addr]);
      assert.equal((await request('POST',acceptPath,{
        code:invite.json.code,fullName:'Outra Pessoa',password:'Senha-Convidada-2026!'})).status,400);
      assert.equal((await admin.query('SELECT id FROM users WHERE email=$1',[addr])).rowCount,0);
