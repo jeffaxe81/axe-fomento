@@ -179,3 +179,17 @@
 .document-item h3{font-size:16px;margin:12px 0}
 .document-item-form{background:#f7f9fb;border-radius:9px;padding:16px;margin-top:12px}
 @media(max-width:650px){.document-form .btn,.document-item-form .btn{width:100%}}
+
+/* AF-018: versões privadas de anexos */
+.document-versions{margin:16px 0 5px;border-top:1px solid var(--line);padding-top:15px}
+.document-versions h4{font-size:13px;margin:0 0 13px}
+.document-attachment-form{display:grid;gap:12px;background:#f7f9fb;padding:14px;border-radius:9px;max-width:700px}
+.document-attachment-form label{font-size:12px;font-weight:700;display:grid;gap:7px}
+.document-attachment-form textarea,.document-attachment-form input[type=file]{
+ width:100%;max-width:100%;min-width:0;font:inherit;font-size:12px;
+ background:white;border-radius:8px;border:1px solid #dce5ed;padding:10px;resize:vertical}
+.document-attachment-form .btn{justify-self:start;white-space:normal}
+.document-version{border-bottom:1px solid var(--line);padding:12px 3px;overflow-wrap:anywhere}
+.document-version a{text-decoration:underline;font-size:12px;color:#145b7d}
+.document-version p{margin:7px 0 0}
+@media(max-width:650px){.document-attachment-form .btn{width:100%}}
