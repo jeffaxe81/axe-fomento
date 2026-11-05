@@ -7,13 +7,18 @@ import { DocumentTemplateForm } from '@/components/document-template-form';
 import { DocumentChecklistStart } from '@/components/document-checklist-start';
 import { DocumentItemForm } from '@/components/document-item-form';
 import { DocumentVersionUpload } from '@/components/document-version-upload';
+import { DocumentValidityForm } from '@/components/document-validity-form';
+import { todaySaoPaulo } from '@/lib/document-validity.mjs';
 import { DOCUMENT_MODALITIES } from '@/lib/document-modalities.mjs';
 
 export const dynamic='force-dynamic';
 type ProjectRow={id:string;title:string;opportunity_title:string|null;is_example:boolean|null};
 type ChecklistRow={project_id:string;modality:string;created_at:string};
 type TemplateCount={modality:string;total:number};
-type ItemRow={id:string;title:string;guidance:string;status:'pendente'|'apresentado'|'dispensado';evidence_note:string;current_version:number};
+type ItemRow={id:string;title:string;guidance:string;status:'pendente'|'apresentado'|'dispensado';
+ evidence_note:string;current_version:number;valid_until:string|null;
+ renewal_owner_user_id:string|null;validity_evidence_note:string;renewal_owner_name:string|null};
+type Owner={id:string;full_name:string};
 type VersionRow={item_id:string;version:number;file_name:string;media_type:string;
  content_length:number;uploaded_at:string;note:string;full_name:string};
 const labels:Record<string,string> = Object.fromEntries(DOCUMENT_MODALITIES);
@@ -36,9 +41,18 @@ export default async function ProjectDocuments({params}:{params:Promise<{id:stri
    'WHERE municipality_id=$1 GROUP BY modality',[user.municipality_id],user.id),
  ]);
  const items=checklist?await queryForMunicipality<ItemRow>(user.municipality_id,
-   'SELECT id,title,guidance,status,evidence_note,current_version FROM project_document_items '+
-   'WHERE project_id=$1 AND municipality_id=$2 ORDER BY title,id LIMIT 200',
+   "SELECT d.id,d.title,d.guidance,d.status,d.evidence_note,d.current_version,"+
+   "to_char(d.valid_until,'YYYY-MM-DD') AS valid_until,d.renewal_owner_user_id,"+
+   "d.validity_evidence_note,u.full_name AS renewal_owner_name "+
+   "FROM project_document_items d LEFT JOIN users u ON u.id=d.renewal_owner_user_id "+
+   "AND u.municipality_id=d.municipality_id "+
+   "WHERE d.project_id=$1 AND d.municipality_id=$2 ORDER BY d.title,d.id LIMIT 200",
    [id,user.municipality_id],user.id):[];
+ const owners=checklist?await queryForMunicipality<Owner>(user.municipality_id,
+   "SELECT id,full_name FROM users WHERE municipality_id=$1 AND active=true "+
+   "ORDER BY lower(full_name),id LIMIT 200",
+   [user.municipality_id],user.id):[];
+ const today=todaySaoPaulo();
  const enableUploads=process.env.ENABLE_DOCUMENT_UPLOADS==='yes';
  const versions=checklist&&enableUploads?await queryForMunicipality<VersionRow>(user.municipality_id,
    'SELECT v.item_id,v.version,v.file_name,v.media_type,v.content_length,v.uploaded_at,'+
@@ -57,7 +71,10 @@ export default async function ProjectDocuments({params}:{params:Promise<{id:stri
   <div className="section-eyebrow">DOCUMENTAÇÃO DA CANDIDATURA</div>
   <div className="page-heading">
    <div><h1>Checklist documental</h1><p>{project.title} · {project.opportunity_title??'Sem oportunidade vinculada'}</p></div>
-   <Link className="btn btn-outline" href={'/projetos/'+id}>← Voltar à ficha</Link>
+   <div className="radar-actions">
+    <Link className="btn btn-primary" href="/documentos/validade">Agenda de validade</Link>
+    <Link className="btn btn-outline" href={'/projetos/'+id}>← Voltar à ficha</Link>
+   </div>
   </div>
   {project.is_example&&<p className="demo-notice"><strong>FICTÍCIO / TESTE:</strong> a oportunidade de origem é ilustrativa.</p>}
   {checklist?<section className="panel document-overview">
@@ -81,6 +98,13 @@ export default async function ProjectDocuments({params}:{params:Promise<{id:stri
      {item.guidance&&<p className="help">Orientação cadastrada: {item.guidance}</p>}
      <DocumentItemForm key={item.id+'-'+item.status+'-'+item.evidence_note} projectId={id}
        itemId={item.id} initialStatus={item.status} initialNote={item.evidence_note}/>
+     <DocumentValidityForm
+       key={item.id+'-'+(item.valid_until??'')+'-'+(item.renewal_owner_user_id??'')+'-'+item.validity_evidence_note}
+       projectId={id} itemId={item.id} owners={owners} today={today}
+       initialValidUntil={item.valid_until}
+       initialOwnerId={item.renewal_owner_user_id}
+       initialOwnerName={item.renewal_owner_name}
+       initialNote={item.validity_evidence_note}/>
      <section className="document-versions" aria-label={'Histórico de versões de '+item.title}>
        <h4>Versões anexadas: {item.current_version}</h4>
        {enableUploads ? <>
