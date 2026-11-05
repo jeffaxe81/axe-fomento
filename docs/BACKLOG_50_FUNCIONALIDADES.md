@@ -161,6 +161,19 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   quota, retenção e homologação operacional. Integrado e testado apenas no CI.
 - Manual: `docs/ANEXOS_VERSIONADOS_AF018.md`. Não ativar em produção.
 
+## Nono incremento — AF-019: agenda de validade documental
+
+- Datas de validade e responsável da renovação são informados pela equipe, não
+  inferidos de documentos ou de normas.
+- Agenda municipal com vencidos e vencimentos em 7/30/90 dias, por projeto e
+  responsável; fuso America/Sao_Paulo e limites inclusivos.
+- Mudança de prazo, transferência de responsabilidade e remoção auditadas sem
+  perda do histórico; atualização repetida é idempotente.
+- Isolamento por RLS e FKs compostas; não aceita conta inativa ou de outra prefeitura.
+- Disponível apenas na branch de desenvolvimento, sujeito ao CI e à homologação.
+  **Não há envio automático de notificações externas.**
+- Manual: `docs/AGENDA_VALIDADE_DOCUMENTAL_AF019.md`.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
