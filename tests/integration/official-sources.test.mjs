@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
+import {STAGE_PROGRAM_SQL} from '../../lib/source-stage-sql.mjs';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
 
@@ -110,6 +111,50 @@ test('Fontes oficiais: curadoria, versões, RLS, permissões e falha fechada',as
       assert.equal((await post('/api/sources/transferegov/run',{},undefined)).status,401);
       assert.equal((await post('/api/sources/transferegov/run',{},analystA)).status,403);
       assert.equal((await post('/api/sources/transferegov/run',{},adminA)).status,503);
+   });
+   await t.test('staging mantém idempotência, versões e reinicia revisão após mudança',async()=>{
+      const ext='STAGING-'+suffix;
+      const provider='Secretaria de teste';
+      const sourceKey='transferegov-parcerias-programa';
+      async function stage(title){
+        const hash=createHash('sha256').update(JSON.stringify([ext,title,provider,sourceUrl])).digest('hex');
+        await app.query('BEGIN');
+        try{
+          await app.query("SELECT set_config('app.tenant_id',$1,true)",[a]);
+          await app.query("SELECT set_config('app.actor_id',$1,true)",[adminA.id]);
+          const result=await app.query(STAGE_PROGRAM_SQL,
+            [a,adminA.id,sourceKey,ext,title,provider,sourceUrl,hash]);
+          await app.query('COMMIT');
+          return result.rows[0];
+        }catch(error){await app.query('ROLLBACK');throw error;}
+      }
+      const first=await stage('Título inicial');
+      assert.equal(first.version,1);
+      assert.equal(first.new_version,true);
+      const {rows:[item]}=await admin.query(
+        'SELECT id,review_state FROM source_programs WHERE municipality_id=$1 AND external_id=$2',[a,ext]);
+      recordIds.push(item.id);
+      assert.equal(item.review_state,'pending');
+      const decision=await post('/api/sources/transferegov/review',
+        {id:item.id,version:1,decision:'approved',justification:'Registro revisado antes da nova coleta.'},adminA);
+      assert.equal(decision.status,200);
+      const same=await stage('Título inicial');
+      assert.equal(same.version,1);
+      assert.equal(same.new_version,false);
+      assert.equal((await admin.query('SELECT review_state FROM source_programs WHERE id=$1',[item.id]))
+        .rows[0].review_state,'approved');
+      const changed=await stage('Título atualizado');
+      assert.equal(changed.version,2);
+      assert.equal(changed.new_version,true);
+      const state=(await admin.query('SELECT version,review_state FROM source_programs WHERE id=$1',[item.id]))
+        .rows[0];
+      assert.equal(state.version,2);
+      assert.equal(state.review_state,'pending');
+      const history=await admin.query(
+        'SELECT version FROM source_program_versions WHERE program_id=$1 ORDER BY version',[item.id]);
+      assert.deepEqual(history.rows.map(x=>x.version),[1,2]);
+      assert.equal((await post('/api/sources/transferegov/review',
+        {id:item.id,version:1,decision:'approved',justification:'Não aceitar versão antiga.'},adminA)).status,409);
    });
    await t.test('PostgreSQL aplica RLS inclusive com SELECT sem filtro e tentativas cruzadas',async()=>{
       assert.equal((await app.query('SELECT * FROM source_programs')).rowCount,0);
