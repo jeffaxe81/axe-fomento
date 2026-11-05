@@ -6,9 +6,12 @@ type Snapshot={
  classification:string;base_year:number;reference_date:string;official_url:string;source_label:string;
  version:number;recorded_at:string;
 };
-export function CapagPanel({initial,canEdit}:{initial:Snapshot|null;canEdit:boolean}){
+type HistoryEntry={version:number;classification:string;base_year:number;reference_date:string;full_name:string};
+export function CapagPanel({initial,history,canEdit}:{
+ initial:Snapshot|null;history:HistoryEntry[];canEdit:boolean;
+}){
  const router=useRouter();
- const [classification,setClassification]=useState(initial?.classification||'A');
+ const [classification,setClassification]=useState(initial?.classification||'');
  const [baseYear,setBaseYear]=useState(initial?.base_year||new Date().getFullYear()-1);
  const [referenceDate,setReferenceDate]=useState(initial?.reference_date||'');
  const [officialUrl,setOfficialUrl]=useState(initial?.official_url||
@@ -56,7 +59,8 @@ export function CapagPanel({initial,canEdit}:{initial:Snapshot|null;canEdit:bool
       a edição e a fonte. Alterações são versionadas e atribuídas à conta administradora.</p>
     <div className="capag-form-grid">
       <label>Classificação declarada
-       <select value={classification} onChange={(e)=>setClassification(e.target.value)}>
+       <select required value={classification} onChange={(e)=>setClassification(e.target.value)}>
+         <option value="" disabled>Selecione uma classificação</option>
          {['A+','A','B+','B','C','D','N.D.'].map(x=><option value={x} key={x}>{x}</option>)}
        </select>
       </label>
@@ -83,5 +87,17 @@ export function CapagPanel({initial,canEdit}:{initial:Snapshot|null;canEdit:bool
     </button>
     {feedback&&<p role={failed?'alert':'status'} className={failed?'error':'success'}>{feedback}</p>}
   </form>}
+  {history.length>0&&<details className="capag-history">
+   <summary>Histórico municipal de referências CAPAG ({history.length} registro(s) mais recentes)</summary>
+   <div className="table-scroll" role="region" aria-label="Histórico de referências CAPAG" tabIndex={0}>
+    <table><thead><tr><th scope="col">Versão</th><th scope="col">Classificação</th>
+      <th scope="col">Ano-base</th><th scope="col">Data do arquivo</th>
+      <th scope="col">Responsável</th></tr></thead>
+     <tbody>{history.map(x=><tr key={x.version}>
+      <td>{x.version}</td><td>{x.classification}</td><td>{x.base_year}</td>
+      <td>{x.reference_date.split('-').reverse().join('/')}</td><td>{x.full_name}</td>
+     </tr>)}</tbody></table>
+   </div>
+  </details>}
  </section>;
 }
