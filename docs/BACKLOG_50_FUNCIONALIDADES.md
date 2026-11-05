@@ -126,6 +126,16 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **Validação:** testes HTTP, banco e integridade, mais CI no commit relevante.
   Detalhes em `docs/MATRIZ_REQUISITOS_DIAGNOSTICO.md`. Homologação operacional permanece NO-GO.
 
+## Sexto incremento — governança municipal (AF-015 e AF-016)
+
+- **AF-015:** convite de uso único, validade de 48 horas, função vinculada à prefeitura
+  no banco e aceite com senha criada pela pessoa convidada; sem envio automático.
+- **AF-016:** desativação e revogação transacional das sessões, reativação sem recuperar
+  sessões antigas, proteção do último administrador ativo e trilha de auditoria.
+- **Qualidade:** testes de isolamento, autorização, ataque por origem, concorrência,
+  expiração e SQL restrito. Manual: `docs/GOVERNANCA_CONVITES_CONTAS.md`.
+- **Status:** implementados em branch para CI e homologação; não entrar em produção.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
