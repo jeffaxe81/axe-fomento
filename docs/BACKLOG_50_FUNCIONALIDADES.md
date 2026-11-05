@@ -31,10 +31,10 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 | AF-007 | Radar | Favoritos de oportunidades por usuário | 3–5 | Base V1 | O usuário marca e desmarca oportunidades e recupera sua lista em outra sessão com a mesma conta. |
 | AF-008 | Radar | Buscas salvas do radar | 3–5 | #14 | Uma consulta com filtros pode ser nomeada, editada e reaberta pelo próprio usuário. |
 | AF-009 | Fontes oficiais | Conector inicial do Transferegov | 8–13 | #4, acesso à fonte | A coleta de um conjunto acordado de programas preserva identificador, URL oficial e data de consulta. A repetição não duplica registros. |
-| AF-010 | Fontes oficiais | Diferenças entre versões de edital | 5–8 | AF-009 | Mostra alterações de prazo, valores e requisitos entre versões conferidas, com data e referência de ambas. |
+| AF-010 | Fontes oficiais | Diferenças entre versões de edital | 5–8 | AF-009 | Mostra mudanças em prazo, valores e requisitos estruturados entre versões preservadas. Cada versão tem identificador, data e referência de origem. |
 | AF-011 | Fontes oficiais | Fila de revisão de registros coletados | 4–7 | AF-009 | Curador autorizado resolve divergências antes de publicar mudanças incertas e registra sua justificativa. |
 | AF-012 | Perfil municipal | Indicador CAPAG com referência de origem | 5–9 | Acesso à fonte | Exibe o indicador disponível, período de referência e fonte. Ausência ou desatualização fica explícita na consulta. |
-| AF-013 | Elegibilidade | Matriz de requisitos objetivos por edital | 5–8 | #16 | Curador vincula cada regra à versão e ao item do edital, com campo para marcar o requisito como obrigatório. |
+| AF-013 | Elegibilidade | Matriz de requisitos objetivos por edital | 5–8 | #16 | Curador vincula cada regra à versão ou retificação, ao item e ao trecho da evidência. Requisitos obrigatórios ficam identificados. |
 | AF-014 | Elegibilidade | Diagnóstico de pendências por requisito | 5–8 | AF-013 | Separa requisito atendido, não atendido e pendente de comprovação e explica a situação com base na regra e na evidência. |
 | AF-015 | Governança municipal | Convite institucional de usuário por função | 4–7 | Base V1, #7 | Admin municipal emite convite de uso único com expiração, função e município vinculados pelo servidor. |
 | AF-016 | Governança municipal | Desativação e reativação de contas | 4–6 | AF-015, #7 | Desativação revoga sessões na mesma transação. Reativação exige novo login e ambas as ações ficam auditadas. |
@@ -71,7 +71,7 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 | AF-037 | Rede de fomento | Radar de cooperação internacional | 6–10 | AF-011, AF-034 | Registra chamadas por instituição, idioma, abrangência e modalidade, com link oficial e estado da conferência. |
 | AF-038 | Rede de fomento | Rotas de candidatura por financiador | 4–7 | AF-034, AF-037 | Diferencia candidatura direta, intermediada e a confirmar. Cada rota apresenta etapas e contatos institucionais verificados. |
 | AF-039 | Consórcios | Cadastro de consórcio e municípios participantes | 5–9 | AF-015, AF-016 | Mantém vínculos institucionais autorizados e permite remover participação sem conceder acesso à carteira privada do município. |
-| AF-040 | Consórcios | Espaço compartilhado de cooperação | 6–10 | AF-021, AF-039 | Compartilha um projeto selecionado com autorização, permissões registradas e revogação de acesso. |
+| AF-040 | Consórcios | Espaço compartilhado de cooperação | 6–10 | AF-021, AF-039 | O gestor do projeto autoriza participantes a ler um resumo selecionado. A revogação impede também o acesso por link direto. A carteira privada e seus anexos ficam restritos à prefeitura de origem. |
 | AF-041 | Gestão | Relatório de conversão por fonte e modalidade | 4–7 | AF-022, AF-034, #21 | Apresenta por período os projetos protocolados, aprovados e recusados, com denominador explícito por fonte. |
 
 ## V4 — Avaliação preliminar de maturidade e viabilidade de projetos
@@ -81,11 +81,11 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 | AF-042 | Avaliador inteligente | Entrada de ideia para pré-avaliação | 3–5 | AF-004 | Registra problema, público e objetivo em formulário próprio e identifica a entrada como ideia inicial. |
 | AF-043 | Avaliador inteligente | Entrada de projeto documentado | 4–7 | AF-018, AF-042 | Vincula versões específicas dos documentos técnicos e financeiros como evidências da avaliação. |
 | AF-044 | Avaliador inteligente | Rubrica ponderada e versionada | 5–8 | AF-013, AF-042 | Valida pesos que somam 100 e preserva a rubrica usada em cada avaliação. |
-| AF-045 | Avaliador inteligente | Pontuação de prontidão por maturidade | 5–8 | AF-043, AF-044 | A mesma entrada, evidências e rubrica reproduzem a nota de 0 a 100 e o detalhamento por critério. |
+| AF-045 | Avaliador inteligente | Pontuação de prontidão por maturidade | 5–8 | AF-042, AF-044 e AF-043 para projetos documentados | A mesma entrada, evidências e rubrica reproduzem a nota de 0 a 100 e o detalhamento por critério. Evidência ainda ausente fica explícita conforme o estágio da proposta. |
 | AF-046 | Avaliador inteligente | Impedimentos eliminatórios separados da nota | 5–8 | AF-014, AF-029, AF-045 | A avaliação sinaliza o impedimento com sua regra e evidência mesmo quando a nota de prontidão é alta. |
 | AF-047 | Avaliador inteligente | Plano priorizado de correção de lacunas | 4–7 | AF-045, AF-046 | Converte lacunas confirmadas em ações priorizadas, com justificativa e possibilidade de atribuir responsável. |
 | AF-048 | Avaliador inteligente | Simulador de impacto de melhorias na nota | 4–7 | AF-045, AF-047 | Mostra a nota simulada com premissas identificadas e preserva a avaliação registrada. |
-| AF-049 | Avaliador inteligente | Revisão e reavaliação versionada | 5–8 | AF-043, AF-046, AF-047 | O revisor registra decisão e justificativa. Uma reavaliação referencia a anterior e discrimina mudanças de evidências e regras. |
+| AF-049 | Avaliador inteligente | Revisão e reavaliação versionada | 5–8 | AF-042, AF-046, AF-047 | O revisor registra decisão e justificativa. Uma reavaliação referencia a anterior e discrimina mudanças de evidências e regras. |
 | AF-050 | Avaliador inteligente | Relatório PDF de pré-viabilidade | 4–7 | AF-047, AF-049 | O PDF apresenta nota, critérios, impedimentos, evidências, versão, responsável e plano de ação. |
 
 ## Primeiro incremento
@@ -94,12 +94,19 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **AF-003.** Usar `pagina` com 25 resultados e uma linha adicional para detectar avanço. Ordenar por `created_at DESC, id DESC`. Exercitar a segunda página, a preservação dos filtros e a navegação em páginas vazias.
 - **AF-004.** Vincular cada título a `/projetos/[id]`. Validar o UUID e restringir leitura ao município autenticado em `queryForMunicipality`. Verificar o acesso ao projeto próprio, UUID inválido e tentativa de acesso por outra prefeitura.
 
+## Contratos para validação das próximas ondas
+
+- **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
+- **AF-027.** Estimativa para um método de amortização inicial. Registrar o método, a regra de carência e exemplos com totais esperados antes de homologar a simulação.
+- **AF-041.** O período usa a data do protocolo. Uma reapresentação do mesmo projeto na mesma fonte e modalidade integra a mesma coorte, com a situação mais recente até a data de corte.
+- **AF-045 e AF-046.** Validar repetibilidade e tratamento uniforme de entradas equivalentes. Uma ideia pode seguir até relatório com requisitos pendentes de comprovação. Impedimentos confirmados exigem regra e evidência.
+
 ## Condições de aceite transversais
 
 - Aplicação Next.js/TypeScript/PostgreSQL, interface responsiva em pt-BR, paginação no servidor, autorização a partir da sessão e políticas de isolamento municipal.
 - Fontes, datas e versões verificáveis. Dados fictícios explicitamente identificados e dados ausentes sinalizados na interface.
 - Cálculos com premissas rastreáveis. Análises jurídicas e saídas da AXE AI com citações e revisão humana. Nota de prontidão e impedimentos eliminatórios exibidos separadamente.
-- Código versionado, testes e CI aprovados no commit relevante, incluindo acesso cruzado para itens com dados municipais e falhas de coleta para integrações. A V2–V4 dependem da homologação da V1 conforme a issue #6. A homologação operacional e a liberação de produção são acompanhadas na issue #13.
+- Código versionado, testes e CI aprovados no commit relevante, incluindo acesso cruzado para itens com dados municipais e falhas de coleta para integrações. Para o início da V2 a V4, registrar o aceite funcional da V1 na issue #2, conforme a dependência da issue #6. A homologação no servidor e o GO de produção são marcos operacionais acompanhados na issue #13.
 
 ## Referências do projeto
 
