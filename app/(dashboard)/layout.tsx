@@ -14,6 +14,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/">▦ <span>Visão geral</span></Link>
         <Link href="/oportunidades">◈ <span>Radar de oportunidades</span></Link>
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
+        {user.role === 'admin' && <Link href="/fontes">⊞ <span>Fontes oficiais</span></Link>}
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
         <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>
       </nav>

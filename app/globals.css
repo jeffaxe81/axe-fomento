@@ -83,3 +83,20 @@
   .saved-search-row .btn { flex: 1 1 auto; }
   .saved-search-create .btn { width: 100%; }
 }
+
+/* Curadoria de registros oficiais — layout acessível e responsivo. */
+.source-table { margin-top: 18px; overflow-wrap: anywhere; }
+.source-table h2,.source-review h2,.source-sync h2 { font-size: 17px; }
+.source-sync { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-top:16px; }
+.source-sync .error,.source-sync .success { margin:0; }
+.source-link { color:#087e70; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+.source-version { padding:16px 0; border-top:1px solid var(--line); overflow-wrap:anywhere; }
+.source-version h3 { font-size:14px; }
+.source-version li { padding:5px 0; font-size:12px; line-height:1.6; }
+.source-review { margin-top:18px; }
+.source-review label { display:block; font-size:12px; font-weight:700; margin:14px 0 8px; }
+.source-review textarea { resize:vertical; border:1px solid #dce5ed; border-radius:8px; width:100%; padding:12px; font:inherit; font-size:13px; }
+.source-review .radar-actions { margin-top:14px; }
+.source-review-history li { margin:12px 0; font-size:12px; overflow-wrap:anywhere; }
+.source-review-history p { margin:5px 0 15px; color:#536d7e; }
+@media(max-width:700px) {.source-sync .btn{width:100%;} .source-review .btn{flex:1 1 150px;}}
