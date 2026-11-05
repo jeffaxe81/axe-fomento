@@ -94,6 +94,11 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **AF-003.** Usar `pagina` com 25 resultados e uma linha adicional para detectar avanço. Ordenar por `created_at DESC, id DESC`. Exercitar a segunda página, a preservação dos filtros e a navegação em páginas vazias.
 - **AF-004.** Vincular cada título a `/projetos/[id]`. Validar o UUID e restringir leitura ao município autenticado em `queryForMunicipality`. Verificar o acesso ao projeto próprio, UUID inválido e tentativa de acesso por outra prefeitura.
 
+## Segundo incremento
+
+- **AF-005.** Em **Radar de oportunidades**, selecionar de duas a três opções e escolher **Comparar seleção**. A tabela mostra órgão, valor com centavos quando conhecido, prazo, área e abrangência. O retorno ao radar recupera os filtros. Registros fictícios ficam identificados em cada coluna.
+- **AF-006.** Em **Agenda de prazos**, consultar as datas de hoje até 7, 30 ou 90 dias à frente, com limite final incluído e paginação de 25 registros. A data civil de Brasília também orienta o estado do prazo no radar. Prazos passados ou ausentes aparecem com seu estado no radar.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.

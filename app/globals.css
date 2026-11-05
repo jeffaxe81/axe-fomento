@@ -16,3 +16,41 @@
 .project-details .profile-row { flex-wrap: wrap; gap: 8px 16px; }
 .project-details dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .project-detail-heading > div { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+
+.radar-actions,
+.radar-toolbar,
+.radar-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.radar-toolbar { margin: 0 0 18px; font-size: 13px; }
+.radar-pagination { margin-top: 18px; font-size: 12px; }
+
+.radar-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.radar-choice input { width: 16px; height: 16px; accent-color: #0b7969; }
+.radar-deadline { margin-left: 6px; }
+.radar-example { margin: 4px 0 0 6px; }
+
+.radar-comparison th[scope="col"] {
+  min-width: 150px;
+  color: var(--ink);
+  font-size: 12px;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.radar-comparison th[scope="row"] { color: var(--ink); }
+.radar-comparison td,
+.radar-agenda td { overflow-wrap: anywhere; }

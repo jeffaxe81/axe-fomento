@@ -73,7 +73,7 @@ test('Radar: comparação de oportunidades e agenda de prazos', async (t) => {
     });
     const unknown = await addOpportunity('Sem data cadastrada', null);
     const expired = await addOpportunity('Prazo anterior', -1);
-    const seven = await addOpportunity('Limite de sete dias', 7);
+    const seven = await addOpportunity('Limite de sete dias', 7, { amount: '99999999999999.99' });
     const eight = await addOpportunity('Oitavo dia', 8);
     const thirty = await addOpportunity('Limite de trinta dias', 30);
     const thirtyOne = await addOpportunity('Trigésimo primeiro dia', 31);
@@ -102,6 +102,7 @@ test('Radar: comparação de oportunidades e agenda de prazos', async (t) => {
       assert.ok(page.html.indexOf(today.title) < page.html.indexOf(seven.title));
       assert.ok(page.html.includes('Instituição de teste ' + suffix));
       assert.ok(page.html.includes('1.234.567,89'));
+      assert.ok(page.html.includes('99.999.999.999.999,99'));
       assert.ok(page.html.includes('saúde, educação'));
       assert.ok(page.html.includes('SC, PR'));
       assert.ok(page.html.includes('Não informado'));
