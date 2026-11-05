@@ -164,13 +164,13 @@ test('AF-013/014: matriz, diagnóstico e auditoria por projeto e município', as
         await app.query("SELECT set_config('app.tenant_id',$1,true)",[cityA]);
         await app.query("SELECT set_config('app.actor_id',$1,true)",[aAnalyst.id]);
         assert.deepEqual((await app.query('SELECT id FROM opportunity_requirements')).rows.map(x=>x.id),[ruleA]);
-        await app.query('SAVEPOINT cross');
+        await app.query('SAVEPOINT tenant_guard');
         await assert.rejects(app.query(
           'INSERT INTO opportunity_requirements(municipality_id,opportunity_id,requirement,source_url,source_version,source_section,evidence_excerpt,created_by) '+
           'VALUES($1,$2,$3,$4,$5,$6,$7,$8)',
           [cityB,opA,'Regra fictícia proibida de outra prefeitura',url,'V1','Item 1',
             'Trecho de teste de acesso cruzado',bAdmin.id]),/row-level security/i);
-        await app.query('ROLLBACK TO SAVEPOINT cross');
+        await app.query('ROLLBACK TO SAVEPOINT tenant_guard');
         const result=await app.query(ASSESS_REQUIREMENT_SQL,
           [cityA,projectA,ruleB,'pendente','',aAnalyst.id]);
         assert.equal(result.rows[0].applicable,false);
