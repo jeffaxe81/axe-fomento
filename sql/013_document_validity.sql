@@ -10,7 +10,7 @@ ALTER TABLE public.project_document_items
   (valid_until IS NULL AND renewal_owner_user_id IS NULL AND validity_evidence_note=''
    AND validity_updated_by IS NULL AND validity_updated_at IS NULL)
   OR
-  (valid_until BETWEEN DATE '2000-01-01' AND DATE '2100-12-31'
+  (valid_until IS NOT NULL AND valid_until BETWEEN DATE '2000-01-01' AND DATE '2100-12-31'
    AND renewal_owner_user_id IS NOT NULL
    AND length(btrim(validity_evidence_note)) BETWEEN 10 AND 500
    AND validity_updated_by IS NOT NULL AND validity_updated_at IS NOT NULL)
