@@ -28,7 +28,7 @@ async function processRequest(request: Request, action: 'save' | 'remove') {
     user.municipality_id,
     'WITH available AS (SELECT id FROM opportunities WHERE id=$3::uuid), ' +
     'stored AS (INSERT INTO opportunity_favorites(municipality_id,user_id,opportunity_id) ' +
-    'SELECT $1::uuid,$2::uuid,id FROM available ON CONFLICT DO NOTHING RETURNING opportunity_id) ' +
+    'SELECT $1::uuid,$2::uuid,id FROM available WHERE true ON CONFLICT DO NOTHING RETURNING opportunity_id) ' +
     'SELECT EXISTS(SELECT 1 FROM available) AS available',
     [user.municipality_id, user.id, id], user.id,
   );
