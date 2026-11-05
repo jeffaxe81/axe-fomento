@@ -106,7 +106,7 @@ test('AF-018: anexos privados criptografados, versão imutável e controle de ac
    const page=await fetch(base+'/projetos/'+projects[0]+'/documentos',{headers:{cookie:analyst.cookie}});
    assert.equal(page.status,200);
    const html=await page.text();
-   assert.ok(html.includes('Baixar versão 1'));
+   assert.ok(html.includes(download(projects[0],itemA.id,1)));
    assert.ok(!html.includes('Documento privado B'));
    assert.equal((await fetch(base+'/projetos/'+projects[0]+'/documentos',{
     headers:{cookie:other.cookie},redirect:'manual'})).status,404);
