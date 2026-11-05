@@ -72,7 +72,7 @@ test('AF-007/008: favoritos e buscas salvas separados por usuário e prefeitura'
       const body = { opportunityId: opportunity.id };
       assert.equal((await change('/api/opportunities/favorites', 'POST', body, a)).status, 200);
       assert.equal((await change('/api/opportunities/favorites', 'POST', body, a)).status, 200);
-      assert.equal((await admin.query('SELECT id FROM opportunity_favorites WHERE user_id=$1', [a.id])).rowCount, 1);
+      assert.equal((await admin.query('SELECT opportunity_id FROM opportunity_favorites WHERE user_id=$1', [a.id])).rowCount, 1);
       assert.ok((await page('/oportunidades/favoritos', a)).html.includes(title));
       assert.ok(!(await page('/oportunidades/favoritos', aOther)).html.includes(title));
       assert.ok(!(await page('/oportunidades/favoritos', b)).html.includes(title));
