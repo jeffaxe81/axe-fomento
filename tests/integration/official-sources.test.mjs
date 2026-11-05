@@ -163,8 +163,8 @@ test('Fontes oficiais: curadoria, versões, RLS, permissões e falha fechada',as
       await app.query('BEGIN');
       try{
         await app.query("SELECT set_config('app.tenant_id',$1,true)",[a]);
-        assert.equal((await app.query('SELECT id FROM source_programs')).rowCount,1);
-        assert.equal((await app.query('SELECT version FROM source_program_versions')).rowCount,2);
+        assert.equal((await app.query('SELECT id FROM source_programs')).rowCount,2);
+        assert.equal((await app.query('SELECT version FROM source_program_versions')).rowCount,4);
         await app.query('SAVEPOINT cross_insert');
         await assert.rejects(app.query(
           'INSERT INTO source_programs(municipality_id,external_id,title,provider,source_url,checksum) '+
