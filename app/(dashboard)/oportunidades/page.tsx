@@ -6,6 +6,8 @@ import { formatMoney, formatOpportunityDate } from '@/lib/format';
 import { classifyDeadline, radarReferenceDate } from '@/lib/opportunity-deadline.mjs';
 import { radarFilters, type RadarFilters } from '@/lib/opportunity-radar';
 import { ProjectCreateButton } from '@/components/project-create-button';
+import { FavoriteButton } from '@/components/favorite-button';
+import { SavedSearches } from '@/components/saved-searches';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +15,16 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
   const user = await requireSession();
   const [city] = await queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
   const rows = await queryForMunicipality<Opportunity & { is_example: boolean }>(user.municipality_id, `SELECT id, title, provider, source_url, to_char(deadline, 'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 100`);
+  const [favorites, savedSearches] = await Promise.all([
+    queryForMunicipality<{ opportunity_id: string }>(user.municipality_id,
+      'SELECT opportunity_id FROM opportunity_favorites WHERE municipality_id=$1 AND user_id=$2',
+      [user.municipality_id, user.id], user.id),
+    queryForMunicipality<{ id: string; name: string; search: string; area: string }>(user.municipality_id,
+      'SELECT id,name,search_text AS search,area FROM saved_opportunity_searches ' +
+      'WHERE municipality_id=$1 AND user_id=$2 ORDER BY lower(name),id LIMIT 100',
+      [user.municipality_id, user.id], user.id),
+  ]);
+  const favoriteIds = new Set(favorites.map((favorite) => favorite.opportunity_id));
   const { search, area } = radarFilters(await searchParams);
   const safeSearch = search.toLowerCase();
   const safeArea = area.toLowerCase();
@@ -33,6 +45,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
       </div>
       <div className="radar-actions">
         <Link className="btn btn-outline" href="/oportunidades/agenda">Agenda de prazos</Link>
+        <Link className="btn btn-outline" href="/oportunidades/favoritos">Meus favoritos</Link>
         <Link className="btn btn-outline" href="/">← Voltar ao painel</Link>
       </div>
     </div>
@@ -48,6 +61,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
       <button type="submit" className="btn btn-primary">Filtrar</button>
       <a className="btn btn-light" href="/oportunidades">Limpar</a>
     </form>
+    <SavedSearches initialItems={savedSearches} currentFilters={{ search, area }} />
     {canCompare && (
       <form className="radar-toolbar" id="radar-comparison" action="/oportunidades/comparar" method="get">
         {search && <input type="hidden" name="busca" value={search} />}
@@ -77,6 +91,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
             </div>
             <div className="result-actions radar-actions">
               <ProjectCreateButton opportunityId={o.id} opportunityTitle={o.title} />
+              <FavoriteButton opportunityId={o.id} initialSaved={favoriteIds.has(o.id)} />
               {o.source_url && <a href={o.source_url} target="_blank" rel="noreferrer" className="btn btn-light">Fonte oficial ↗</a>}
               {canCompare && (
                 <label className="radar-choice">

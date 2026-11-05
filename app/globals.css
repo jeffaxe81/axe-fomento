@@ -54,3 +54,32 @@
 .radar-comparison th[scope="row"] { color: var(--ink); }
 .radar-comparison td,
 .radar-agenda td { overflow-wrap: anywhere; }
+
+/* AF-007/008: preferências pessoais e interação acessível em telas pequenas. */
+.favorite-control { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.btn-favorite-active { background: #fff5d8; color: #7a540d; border: 1px solid #e9cc80; }
+.btn-danger-outline { background: white; border: 1px solid #e3c5c7; color: #9c2b3b; }
+.result-actions { flex-wrap: wrap; }
+.saved-search-panel { margin-bottom: 18px; }
+.saved-search-panel .panel-heading { margin-bottom: 14px; }
+.saved-search-panel h2 { font-size: 16px; margin: 0 0 5px; }
+.saved-search-create { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.saved-search-create label { font-size: 12px; font-weight: 700; color: #526e83; }
+.saved-search-create input,
+.saved-search-details input { min-height: 40px; padding: 9px 12px; border: 1px solid #dce5ed; border-radius: 8px; min-width: 0; max-width: 100%; }
+.saved-search-create input { flex: 1 1 190px; }
+.saved-search-list { padding: 0; margin: 0; list-style: none; }
+.saved-search-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.saved-search-details { display: grid; gap: 5px; min-width: 0; flex: 1 1 220px; }
+.saved-search-details label,
+.saved-search-details small { font-size: 11px; color: #6f8292; overflow-wrap: anywhere; }
+.favorite-card h2 { margin: 14px 0 5px; font-size: 18px; overflow-wrap: anywhere; }
+.favorite-card p { margin: 8px 0; overflow-wrap: anywhere; }
+.favorite-card .radar-actions { margin-top: 18px; }
+.btn:focus-visible, .saved-search-create input:focus-visible,
+.saved-search-details input:focus-visible { outline: 3px solid #0a987f; outline-offset: 2px; }
+@media(max-width:700px) {
+  .saved-search-row .radar-actions { width: 100%; }
+  .saved-search-row .btn { flex: 1 1 auto; }
+  .saved-search-create .btn { width: 100%; }
+}
