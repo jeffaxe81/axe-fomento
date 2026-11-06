@@ -130,7 +130,7 @@ export default async function MunicipalProjectTasks({params}:{
        <summary>Histórico de alterações ({history.length} recente(s))</summary>
        {history.map(event=><div className="task-event" key={event.revision}>
         <strong>v{event.revision} — {eventLabels[event.event_type]??event.event_type}</strong>
-        <p>{event.actor_name} · {new Date(event.recorded_at).toLocaleString('pt-BR')}</p>
+        <p>{event.actor_name} · {new Date(event.recorded_at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>
         {event.event_type==='transferred'&&
          <p>{event.previous_name??'Sem responsável'} → {event.next_name??'Sem responsável'}</p>}
         {event.event_type==='status_changed'&&

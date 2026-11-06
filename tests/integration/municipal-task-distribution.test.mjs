@@ -281,6 +281,7 @@ test('AF-020: secretarias, equipe, tarefas, transferência e auditoria isoladas'
     await admin.query('DELETE FROM municipal_secretariat_members WHERE municipality_id=ANY($1::uuid[])',[cities]);
     await admin.query('DELETE FROM municipal_secretariats WHERE municipality_id=ANY($1::uuid[])',[cities]);
    }
+   if(cities.length)await admin.query('DELETE FROM audit_events WHERE municipality_id=ANY($1::uuid[])',[cities]);
    if(users.length)await admin.query('DELETE FROM users WHERE id=ANY($1::uuid[])',[users]);
    if(cities.length)await admin.query('DELETE FROM municipalities WHERE id=ANY($1::uuid[])',[cities]);
   }finally{await restricted.end();await admin.end();}
