@@ -215,6 +215,38 @@ test('AF-020: secretarias, equipe, tarefas, transferência e auditoria isoladas'
    assert.deepEqual(history.rows.map(x=>x.action),['granted','revoked']);
   });
 
+  await t.test('concorrência e conta desvinculada não criam tarefa aberta sem responsável',async()=>{
+   const reopen={action:'status',taskId:taskA,expectedRevision:5,
+    status:'pendente',note:'Tentativa de reabrir atividade após revogação de vínculo.'};
+   assert.equal((await api('PATCH',change,reopen,ownerA)).status,404);
+   const move=await api('PATCH',change,{action:'transfer',taskId:taskA,expectedRevision:5,
+    assignedTo:outsider.id,note:'Tarefa concluída transferida para novo responsável ativo.'},ownerA);
+   assert.equal(move.status,200);assert.equal(move.body.revision,6);
+   const candidates=[
+    {action:'status',taskId:taskA,expectedRevision:6,status:'pendente',
+     note:'Retomar atividade documental depois da transferência.'},
+    {action:'status',taskId:taskA,expectedRevision:6,status:'em_andamento',
+     note:'Reabrir revisão de documentos depois da transferência.'},
+   ];
+   const outcomes=await Promise.all(candidates.map(data=>api('PATCH',change,data,ownerA)));
+   assert.deepEqual(outcomes.map(x=>x.status).sort((a,b)=>a-b),[200,409]);
+   const [current]= (await admin.query('SELECT revision,assigned_to FROM municipal_tasks WHERE id=$1',
+    [taskA])).rows;
+   assert.equal(current.revision,7);
+   assert.equal(current.assigned_to,outsider.id);
+   assert.equal((await admin.query('SELECT count(*)::int AS n FROM municipal_task_events WHERE task_id=$1',
+    [taskA])).rows[0].n,7);
+   assert.equal((await api('PATCH','/api/secretariats/members',
+    {secretariatId:deptA,userId:outsider.id},ownerA)).status,409);
+   const closed=await api('PATCH',change,{action:'status',taskId:taskA,
+    expectedRevision:7,status:'concluida',
+    note:'Fechamento após conferência final do novo responsável.'},outsider);
+   assert.equal(closed.status,200);assert.equal(closed.body.revision,8);
+   const released=await api('PATCH','/api/secretariats/members',
+    {secretariatId:deptA,userId:outsider.id},ownerA);
+   assert.equal(released.status,200);assert.equal(released.body.changed,true);
+  });
+
   await t.test('RLS bloqueia leitura sem contexto e tentativa de escritura cruzada',async()=>{
    assert.equal((await restricted.query('SELECT * FROM municipal_tasks')).rowCount,0);
    assert.equal((await restricted.query('SELECT * FROM municipal_task_events')).rowCount,0);
