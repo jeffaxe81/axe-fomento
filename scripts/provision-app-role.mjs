@@ -25,6 +25,11 @@ try {
   await db.query('GRANT SELECT,INSERT ON public.project_document_events TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_document_versions TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_document_validity_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_secretariats TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,UPDATE ON public.municipal_secretariat_members TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_secretariat_member_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT,UPDATE ON public.municipal_tasks TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_task_events TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.opportunity_requirements TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_requirement_assessments TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_requirement_events TO fomento_app');
