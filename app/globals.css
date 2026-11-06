@@ -255,3 +255,23 @@
  .task-input-form,.task-change-form,.task-summary{grid-template-columns:1fr}
  .task-change-form .btn,.task-input-form .btn{width:100%}
 }
+
+/* AF-021: revisão e autorização interna */
+.review-state{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:15px;
+ border:1px solid var(--line);border-radius:9px;background:#f5f8fa;margin:12px 0}
+.review-state strong{font-size:15px}
+.review-state span{font-size:12px;color:#4e6475}
+.internal-review-form{display:grid;gap:14px;max-width:720px}
+.internal-review-form label{display:grid;gap:7px;font-weight:700;font-size:12px}
+.internal-review-form select,.internal-review-form textarea{
+ background:white;color:var(--ink);font:inherit;font-size:13px;border:1px solid #dce5ed;
+ border-radius:8px;padding:11px;width:100%;min-width:0}
+.internal-review-form textarea{resize:vertical;line-height:1.6}
+.internal-review-form button{justify-self:start;white-space:normal}
+.review-events{display:grid;gap:0}
+.review-event{border-top:1px solid var(--line);padding:16px 0;overflow-wrap:anywhere}
+.review-event strong,.review-event h3{font-size:14px;margin:10px 0}
+.review-event a{text-decoration:underline}
+.review-event p{font-size:12px;line-height:1.6;margin:6px 0;white-space:pre-wrap}
+.review-links{margin:16px 0}
+@media(max-width:650px){.internal-review-form button{width:100%}}
