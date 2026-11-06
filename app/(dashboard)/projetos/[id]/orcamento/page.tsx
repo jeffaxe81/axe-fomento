@@ -7,6 +7,7 @@ import {formatBRLCents} from '@/lib/financial-money.mjs';
 import {formatQuantityMilli} from '@/lib/budget-math.mjs';
 import {READ_BUDGET_STAGES_SQL,READ_BUDGET_TOTAL_SQL} from '@/lib/project-budget-sql.mjs';
 import {BudgetStageForm,BudgetItemForm} from '@/components/project-budget-forms';
+import {CounterpartSimulation} from '@/components/counterpart-simulation';
 
 export const dynamic='force-dynamic';
 type Project={id:string;title:string;owner_user_id:string|null;is_example:boolean|null};
@@ -76,6 +77,8 @@ export default async function ProjectBudget({params}:{params:Promise<{id:string}
     metade para cima. Todos os valores são estimativas municipais, não
     constituem licitação, cotação vigente ou validação de preço público.</p>
   </section>
+  <CounterpartSimulation key={id+'/'+total.total_cents} totalCents={total.total_cents}
+   itemCount={total.item_count} isExample={project.is_example===true}/>
   <section className="panel">
    <h2>Cadastrar etapa</h2>
    {canWrite?<BudgetStageForm projectId={id}/>:

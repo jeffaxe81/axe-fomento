@@ -50,6 +50,13 @@ test('AF-025: etapas, itens, soma exata, tenant, auditoria e permissões',async 
    headers:who?.cookie?{cookie:who.cookie}:{}});
   return {status:response.status,html:await response.text()};
  }
+ function simulationPanel(html){
+  // Match the visible section, without confusing its values with AF-025 or the Next.js payload.
+  const panel=html.match(/<section\b[^>]*\baria-labelledby="counterpart-simulation-title"[^>]*>[\s\S]*?<\/section>/);
+  assert.ok(panel,'A página deve renderizar o painel de simulação de contrapartida');
+  assert.match(panel[0],/<h2\b[^>]*>Simulação de contrapartida<\/h2>/);
+  return panel[0];
+ }
  try{
   const a=await city('A'),b=await city('B');
   const owner=await actor(a,'owner','analyst');
@@ -88,6 +95,7 @@ test('AF-025: etapas, itens, soma exata, tenant, auditoria e permissões',async 
    const p=await page('/projetos/'+projectA+'/orcamento',owner);
    assert.equal(p.status,200);assert.ok(p.html.includes('Projeto executivo '+tag));
    assert.ok(p.html.includes('Conciliado entre etapas e itens'));
+   assert.match(simulationPanel(p.html),/Cadastre itens no orçamento/);
    assert.equal((await page('/projetos/'+projectA+'/orcamento',foreign)).status,404);
    assert.equal((await page('/projetos/'+projectA+'/orcamento')).status,307);
   });
@@ -136,6 +144,26 @@ test('AF-025: etapas, itens, soma exata, tenant, auditoria e permissões',async 
    assert.ok(html.includes('R$ 10,01'));
    assert.ok(html.includes('Material estimado '+tag));
    assert.ok(html.includes('Conciliado entre etapas e itens'));
+  });
+  await t.test('AF-026: simulação usa o total do orçamento e respeita o município',async()=>{
+   const budgetPath='/projetos/'+projectA+'/orcamento';
+   const own=await page(budgetPath,owner);
+   assert.equal(own.status,200);
+   const panel=simulationPanel(own.html);
+   const budgetBase=panel.match(
+    /<dt[^>]*>Total do orçamento usado na simulação<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/);
+   assert.equal(budgetBase?.[1].replace(/<[^>]+>/g,'').trim(),'R$ 264,90');
+   assert.match(panel,/Percentual/);
+   assert.match(panel,/Disponível/);
+   assert.doesNotMatch(panel,/Cadastre itens no orçamento/);
+   const denied=await page(budgetPath,foreign);
+   assert.equal(denied.status,404);
+   assert.doesNotMatch(denied.html,/Simulação de contrapartida|R\$ 264,90/);
+   const foreignOwn=await page('/projetos/'+projectB+'/orcamento',foreign);
+   assert.equal(foreignOwn.status,200);
+   const foreignPanel=simulationPanel(foreignOwn.html);
+   assert.match(foreignPanel,/Cadastre itens no orçamento/);
+   assert.doesNotMatch(foreignPanel,/R\$ 264,90/);
   });
   await t.test('eventos insert-only, RLS forçada e composição do total',async()=>{
    const stages=(await admin.query('SELECT COUNT(*)::int AS total FROM project_budget_stages '+

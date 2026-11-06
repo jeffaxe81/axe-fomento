@@ -3,12 +3,13 @@ import { z } from 'zod';
 import { queryForMunicipality, type Opportunity } from '@/lib/db';
 
 type SearchValue = string | string[] | undefined;
-export type RadarFilters = { busca?: SearchValue; area?: SearchValue };
+export type RadarFilters = { busca?: SearchValue; area?: SearchValue; pagina?: SearchValue };
 export type ComparisonParams = RadarFilters & { id?: SearchValue };
 export type AgendaParams = { dias?: SearchValue; pagina?: SearchValue };
 
 const opportunityId = z.string().uuid();
 const columns = "id, title, provider, to_char(deadline, 'YYYY-MM-DD') AS deadline, is_example";
+const radarPageSize = 25;
 const agendaPageSize = 25;
 export const agendaPeriods = [7, 30, 90] as const;
 
@@ -21,15 +22,20 @@ function firstValue(value: SearchValue) {
 
 export function radarFilters(params: RadarFilters) {
   return {
-    search: firstValue(params.busca).trim().slice(0, 120),
-    area: firstValue(params.area).trim().slice(0, 60),
+    search: firstValue(params.busca).replaceAll('\0', '').trim().slice(0, 120),
+    area: firstValue(params.area).replaceAll('\0', '').trim().slice(0, 60),
   };
 }
 
-export function radarHref({ search, area }: ReturnType<typeof radarFilters>) {
+export function radarSelection(params: RadarFilters) {
+  return { ...radarFilters(params), page: pageNumber(params.pagina) };
+}
+
+export function radarHref({ search, area }: ReturnType<typeof radarFilters>, page = 1) {
   const query = new URLSearchParams();
   if (search) query.set('busca', search);
   if (area) query.set('area', area);
+  if (page > 1) query.set('pagina', String(page));
   return query.size ? '/oportunidades?' + query.toString() : '/oportunidades';
 }
 
@@ -42,12 +48,38 @@ export function comparisonIds(value: SearchValue) {
   return ids;
 }
 
+function pageNumber(value: SearchValue) {
+  const page = firstValue(value);
+  return /^[1-9]\d{0,8}$/.test(page) ? Number(page) : 1;
+}
+
 export function agendaSelection(params: AgendaParams) {
   const days = firstValue(params.dias);
   const period = agendaPeriods.find((option) => String(option) === days) ?? 30;
-  const rawPage = firstValue(params.pagina);
-  const page = /^[1-9]\d{0,8}$/.test(rawPage) ? Number(rawPage) : 1;
-  return { period, page };
+  return { period, page: pageNumber(params.pagina) };
+}
+
+export async function listRadarOpportunities(
+  municipalityId: string,
+  { search, area, page }: ReturnType<typeof radarSelection>,
+) {
+  // strpos treats wildcard characters as text; the UTF-8 collation lowercases accented letters.
+  const rows = await queryForMunicipality<Opportunity & { is_example: boolean }>(
+    municipalityId,
+    `SELECT ${columns}, source_url, areas, eligible_ufs, min_population, max_population, funding_amount, created_at
+     FROM opportunities
+     WHERE ($1::text = '' OR strpos(
+       lower((title || ' ' || provider) COLLATE pg_catalog.pg_c_utf8),
+       lower($1 COLLATE pg_catalog.pg_c_utf8)
+     ) > 0)
+       AND ($2::text = '' OR EXISTS (
+         SELECT 1 FROM unnest(areas) AS tags(tag)
+         WHERE strpos(lower(tag COLLATE pg_catalog.pg_c_utf8), lower($2 COLLATE pg_catalog.pg_c_utf8)) > 0
+       ))
+     ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4`,
+    [search, area, radarPageSize + 1, (page - 1) * radarPageSize],
+  );
+  return { opportunities: rows.slice(0, radarPageSize), hasNext: rows.length > radarPageSize };
 }
 
 export async function getComparisonOpportunities(municipalityId: string, ids: string[]) {

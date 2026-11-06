@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
 import { formatFundingAmount, formatOpportunityDate } from '@/lib/format';
-import { comparisonIds, getComparisonOpportunities, radarFilters, radarHref, type ComparisonParams } from '@/lib/opportunity-radar';
+import { comparisonIds, getComparisonOpportunities, radarHref, radarSelection, type ComparisonParams } from '@/lib/opportunity-radar';
 
 export const dynamic = 'force-dynamic';
 
 export default async function CompareOpportunities({ searchParams }: { searchParams: Promise<ComparisonParams> }) {
   const user = await requireSession();
   const params = await searchParams;
-  const back = radarHref(radarFilters(params));
+  const filters = radarSelection(params);
+  const back = radarHref(filters, filters.page);
   const ids = comparisonIds(params.id);
   const opportunities = ids ? await getComparisonOpportunities(user.municipality_id, ids) : [];
   const fields = [

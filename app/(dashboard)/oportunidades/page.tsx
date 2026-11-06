@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { queryForMunicipality, type Municipality, type Opportunity } from '@/lib/db';
+import { queryForMunicipality, type Municipality } from '@/lib/db';
 import { evaluateMatch } from '@/lib/match.mjs';
 import { formatMoney, formatOpportunityDate } from '@/lib/format';
 import { classifyDeadline, radarReferenceDate } from '@/lib/opportunity-deadline.mjs';
-import { radarFilters, type RadarFilters } from '@/lib/opportunity-radar';
+import { listRadarOpportunities, radarHref, radarSelection, type RadarFilters } from '@/lib/opportunity-radar';
 import { ProjectCreateButton } from '@/components/project-create-button';
 import { FavoriteButton } from '@/components/favorite-button';
 import { SavedSearches } from '@/components/saved-searches';
@@ -13,9 +13,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function Opportunities({ searchParams }: { searchParams: Promise<RadarFilters> }) {
   const user = await requireSession();
-  const [city] = await queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]);
-  const rows = await queryForMunicipality<Opportunity & { is_example: boolean }>(user.municipality_id, `SELECT id, title, provider, source_url, to_char(deadline, 'YYYY-MM-DD') AS deadline, areas, eligible_ufs, min_population, max_population, funding_amount, is_example, created_at FROM opportunities ORDER BY created_at DESC LIMIT 100`);
-  const [favorites, savedSearches] = await Promise.all([
+  const filters = radarSelection(await searchParams);
+  const { search, area, page } = filters;
+  const [[city], { opportunities, hasNext }, favorites, savedSearches] = await Promise.all([
+    queryForMunicipality<Municipality>(user.municipality_id, 'SELECT id, name, uf, ibge_code, population, priority_areas FROM municipalities WHERE id=$1', [user.municipality_id]),
+    listRadarOpportunities(user.municipality_id, filters),
     queryForMunicipality<{ opportunity_id: string }>(user.municipality_id,
       'SELECT opportunity_id FROM opportunity_favorites WHERE municipality_id=$1 AND user_id=$2',
       [user.municipality_id, user.id], user.id),
@@ -25,15 +27,10 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
       [user.municipality_id, user.id], user.id),
   ]);
   const favoriteIds = new Set(favorites.map((favorite) => favorite.opportunity_id));
-  const { search, area } = radarFilters(await searchParams);
-  const safeSearch = search.toLowerCase();
-  const safeArea = area.toLowerCase();
   const reference = radarReferenceDate();
-  const results = rows
-    .filter((o) => (!safeSearch || `${o.title} ${o.provider}`.toLowerCase().includes(safeSearch))
-      && (!safeArea || o.areas.some((a) => a.toLowerCase().includes(safeArea))))
-    .map((o) => ({ ...o, match: evaluateMatch(city, o, reference), deadlineState: classifyDeadline(o.deadline, reference) }))
-    .sort((a, b) => b.match.score - a.match.score);
+  const results = opportunities.map((o) => ({
+    ...o, match: evaluateMatch(city, o, reference), deadlineState: classifyDeadline(o.deadline, reference),
+  }));
   const canCompare = results.length >= 2;
 
   return <>
@@ -66,11 +63,14 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
       <form className="radar-toolbar" id="radar-comparison" action="/oportunidades/comparar" method="get">
         {search && <input type="hidden" name="busca" value={search} />}
         {area && <input type="hidden" name="area" value={area} />}
+        {page > 1 && <input type="hidden" name="pagina" value={page} />}
         <button type="submit" className="btn btn-outline">Comparar seleção</button>
         <span id="radar-comparison-help">Marque 2 ou 3 oportunidades na lista.</span>
       </form>
     )}
-    <div className="results-summary">{results.length} oportunidades encontradas · Pontuação preliminar conforme cadastro do município</div>
+    <div className="results-summary">
+      {results.length} nesta página · Cadastros mais recentes primeiro · Pontuação preliminar conforme cadastro do município
+    </div>
     <div className="opportunity-cards">
       {results.map((o) => (
         <article className="result-card" key={o.id}>
@@ -110,8 +110,18 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
           </aside>
         </article>
       ))}
-      {results.length === 0 && <div className="empty-state">Nenhuma oportunidade corresponde aos filtros atuais.</div>}
+      {results.length === 0 && <div className="empty-state">
+        {page === 1 ? 'Nenhuma oportunidade corresponde aos filtros atuais.' : 'Nenhuma oportunidade nesta página.'}
+        {page > 1 && <Link href={radarHref(filters)} className="btn btn-outline">Voltar à primeira página</Link>}
+      </div>}
     </div>
+    {(page > 1 || hasNext) && (
+      <nav className="radar-pagination" aria-label="Páginas do radar">
+        {page > 1 && <Link href={radarHref(filters, page - 1)} className="btn btn-outline">← Anterior</Link>}
+        <span aria-current="page">Página {page}</span>
+        {hasNext && <Link href={radarHref(filters, page + 1)} className="btn btn-outline">Próxima →</Link>}
+      </nav>
+    )}
     <p className="note">Prazos exibidos com referência à data de Brasília em {formatOpportunityDate(reference.toISOString().slice(0, 10))}.</p>
     <p className="note">A análise automática não substitui a leitura do edital, a verificação de habilitação jurídica, a documentação exigida ou a confirmação de prazo na fonte oficial.</p>
   </>;

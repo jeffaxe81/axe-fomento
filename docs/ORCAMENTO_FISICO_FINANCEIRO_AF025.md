@@ -78,3 +78,18 @@ correção/versionamento, sem habilitar automaticamente.
 - Total geral reconcilia com soma dos subtotais de todas as etapas.
 - Eventos e entidades sem UPDATE/DELETE para a role da aplicação.
 - Testes com duas prefeituras, administradores, titulares e terceiros.
+
+## Simulação de contrapartida — AF-026
+
+Na tela do orçamento, informe o percentual municipal e o valor disponível em
+reais. A simulação usa o total de todos os itens registrados no projeto. Os
+campos aceitam vírgula ou ponto decimal e até duas casas.
+
+O aporte é o total do projeto multiplicado pelo percentual, com meio centavo
+arredondado para cima. A falta ou a sobra compara o disponível informado com
+o aporte calculado. Em um projeto de R$ 100.000,00, uma contrapartida de
+12,50% resulta em R$ 12.500,00 de aporte. Com R$ 10.000,00 disponíveis,
+faltam R$ 2.500,00.
+
+As premissas e o resultado ficam na página do navegador para análise da
+equipe municipal. A homologação operacional segue na issue #13.

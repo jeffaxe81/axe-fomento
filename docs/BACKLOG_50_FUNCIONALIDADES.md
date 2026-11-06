@@ -275,3 +275,18 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **Não é** aprovação, cotação oficial, planilha de contratação, conciliação
   bancária ou ferramenta de empenho. Não permite edição/exclusão no MVP;
   alterações exigirão novo fluxo de revisão e trilha futura.
+
+## Décimo sexto incremento — AF-026 e busca do radar
+
+- **AF-026.** O orçamento do projeto oferece simulação de contrapartida com
+  a soma do AF-025, percentual municipal de 0 a 100 e valor disponível
+  informado pela equipe. O cálculo em centavos mostra aporte, valor restante,
+  falta ou sobra e memória de cálculo. Os dados da simulação ficam na página.
+- **Issue #14.** O radar aplica os filtros combinados de título/órgão e área
+  a todo o catálogo antes de paginar 25 resultados. A ordem é por cadastro
+  recente, com desempate por ID. Ao voltar da comparação, a página e os
+  filtros são recuperados.
+- **Validação.** Testes cobrem caracteres literais e caixa acentuada,
+  registros fora dos 100 cadastros mais recentes, reconciliação da base da
+  simulação e tentativas de leitura e inserção entre contas no PostgreSQL.
+  A homologação operacional segue na issue #13.
