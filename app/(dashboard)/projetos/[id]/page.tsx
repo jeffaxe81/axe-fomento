@@ -29,6 +29,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <Link href={'/projetos/'+project.id+'/revisao'} className="btn btn-outline">Revisão interna</Link>
         <Link href={'/projetos/'+project.id+'/protocolos'} className="btn btn-outline">Protocolos externos</Link>
         <Link href={'/projetos/'+project.id+'/diligencias'} className="btn btn-outline">Diligências</Link>
+        <Link href={'/projetos/'+project.id+'/financeiro'} className="btn btn-outline">Repasses e marcos</Link>
         <Link href="/projetos" className="btn btn-outline">← Voltar aos projetos</Link>
       </div>
     </div>

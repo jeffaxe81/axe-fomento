@@ -6,7 +6,7 @@ import pg from 'pg';
 const connectionString=process.env.DATABASE_ADMIN_URL;
 if(!connectionString)throw new Error('Defina DATABASE_ADMIN_URL com credencial de migração');
 const files=['001_initial.sql','002_tenant_rls.sql','003_auth_sessions_audit.sql',
-  '004_mfa_session_controls.sql','005_password_recovery.sql','006_radar_personalization.sql','007_official_source_pipeline.sql','008_requirement_evidence.sql','009_user_governance.sql','010_municipal_capag.sql','011_document_checklists.sql','012_document_versions.sql','013_document_validity.sql','014_municipal_tasks.sql','015_internal_reviews.sql','016_fix_review_separation.sql','017_external_protocols.sql','018_protocol_diligences.sql'];
+  '004_mfa_session_controls.sql','005_password_recovery.sql','006_radar_personalization.sql','007_official_source_pipeline.sql','008_requirement_evidence.sql','009_user_governance.sql','010_municipal_capag.sql','011_document_checklists.sql','012_document_versions.sql','013_document_validity.sql','014_municipal_tasks.sql','015_internal_reviews.sql','016_fix_review_separation.sql','017_external_protocols.sql','018_protocol_diligences.sql','019_financial_milestones.sql'];
 const client=new pg.Client({connectionString});
 await client.connect();
 try{

@@ -243,3 +243,16 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   designado responde. RLS, FK composta e anti-CSRF impedem vínculos cruzados.
 - Flag `ENABLE_DILIGENCE_RECORDS=no` por padrão, pendente de homologação.
 - Manual: `docs/DILIGENCIAS_PROTOCOLO_AF023.md`.
+
+## Décimo quarto incremento — AF-024: repasses e marcos previstos/realizados
+
+- Banco com cronograma previsto, realização declarada, valores exatos em centavos,
+  projeto/município, protocolo externo e comprovante vinculado à versão original.
+- Criação por titular ou administrador. Realização por titular ou administrador,
+  com data, valor efetivo, justificativa e versão privada do documento AF-018.
+- Controle de revisão para concorrência, trilha de eventos sem UPDATE/DELETE pela
+  role web; FORCE RLS e FKs compostas garantem isolamento de cada prefeitura.
+- Interface `/projetos/[id]/financeiro` com totais dos repasses exibidos,
+  prazos e comprovantes. Nenhum total é prova de movimentação bancária.
+- `ENABLE_FINANCIAL_TRACKING=no` por padrão e `yes` apenas no CI isolado.
+- Manual: `docs/REPASSES_E_MARCOS_AF024.md`. Depende de homologação AF-018/AF-022.

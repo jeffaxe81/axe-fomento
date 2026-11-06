@@ -1,0 +1,2 @@
+export declare const CREATE_FINANCIAL_MILESTONE_SQL:string;
+export declare const REALIZE_FINANCIAL_MILESTONE_SQL:string;
