@@ -37,7 +37,10 @@ test('AF-021: revisão e autorização interna com dupla aprovação e isolament
    headers:{'content-type':'application/json',origin,
    ...(who?.cookie?{cookie:who.cookie}:{})},
    body:JSON.stringify(data)});
-  return {status:response.status,body:await response.json()};
+  const raw=await response.text();
+  let parsed;
+  try{parsed=JSON.parse(raw);}catch{parsed={error:'HTTP '+response.status+': '+raw.slice(0,160)};}
+  return {status:response.status,body:parsed};
  }
  async function decide(data,who,origin=base){
   return send('/api/projects/internal-review','POST',data,who,origin);
@@ -143,6 +146,26 @@ test('AF-021: revisão e autorização interna com dupla aprovação e isolament
     note:'Tarefa de conferência interna encerrada com evidências.'
    },reviewer);
    assert.equal(done.status,200);
+   const opp=await db.query(
+    "INSERT INTO opportunities(title,provider,is_example) VALUES($1,'Fonte fictícia',true) RETURNING id",
+    ['Oportunidade de revisão '+suffix]);
+   opportunities.push(opp.rows[0].id);
+   await db.query('UPDATE projects SET opportunity_id=$1 WHERE id=$2',[opp.rows[0].id,projectA]);
+   const requirement=(await db.query(
+    'INSERT INTO opportunity_requirements(municipality_id,opportunity_id,requirement,mandatory,'+
+    'source_url,source_version,source_section,evidence_excerpt,created_by) '+
+    'VALUES($1,$2,$3,true,$4,$5,$6,$7,$8) RETURNING id',
+    [tenantA,opp.rows[0].id,'Comprovar capacidade institucional documentada '+suffix,
+     'https://www.gov.br/teste','edicao-2026','Secao III',
+     'Trecho fictício para simular a comprovação de capacidade institucional.',reviewer.id])).rows[0].id;
+   const missing=await decide(technical,reviewer);
+   assert.equal(missing.status,409);
+   assert.equal(missing.body.blockers.mandatory_requirements_missing,1);
+   await db.query(
+    'INSERT INTO project_requirement_assessments(municipality_id,project_id,opportunity_id,'+
+    'requirement_id,status,evidence_note,assessed_by) VALUES($1,$2,$3,$4,$5,$6,$7)',
+    [tenantA,projectA,opp.rows[0].id,requirement,'atendido',
+     'Comprovação institucional declarada manualmente para teste.',requester.id]);
   });
 
   await t.test('dois administradores distintos revisam e autorizam, sem envio externo',async()=>{
@@ -156,6 +179,19 @@ test('AF-021: revisão e autorização interna com dupla aprovação e isolament
    assert.equal((await decide(approve,reviewer)).status,404);
    assert.equal((await decide(approve,requester)).status,403);
    assert.equal((await decide(approve,foreign)).status,404);
+   const reopened=await send('/api/projects/tasks/change','PATCH',{
+    taskId,action:'status',expectedRevision:2,status:'em_andamento',
+    note:'Nova conferência solicitada após conclusão da revisão técnica.'
+   },reviewer);
+   assert.equal(reopened.status,200);
+   const blockedAuthorization=await decide(approve,authorizer);
+   assert.equal(blockedAuthorization.status,409);
+   assert.equal(blockedAuthorization.body.blockers.open_tasks,1);
+   const completed=await send('/api/projects/tasks/change','PATCH',{
+    taskId,action:'status',expectedRevision:3,status:'concluida',
+    note:'Complementação final concluída antes da autorização interna.'
+   },reviewer);
+   assert.equal(completed.status,200);
    const auth=await decide(approve,authorizer);
    assert.equal(auth.status,200);assert.equal(auth.body.revision,5);
    assert.equal((await decide(approve,authorizer)).status,409);
@@ -219,6 +255,8 @@ test('AF-021: revisão e autorização interna com dupla aprovação e isolament
      [municipalities]);
     await db.query('DELETE FROM audit_events WHERE municipality_id=ANY($1::uuid[])',[municipalities]);
    }
+   if(opportunities.length)await db.query('DELETE FROM opportunities WHERE id=ANY($1::uuid[])',
+    [opportunities]);
    if(users.length)await db.query('DELETE FROM users WHERE id=ANY($1::uuid[])',[users]);
    if(municipalities.length)await db.query('DELETE FROM municipalities WHERE id=ANY($1::uuid[])',
      [municipalities]);
