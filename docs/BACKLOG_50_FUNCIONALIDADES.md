@@ -256,3 +256,22 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   prazos e comprovantes. Nenhum total é prova de movimentação bancária.
 - `ENABLE_FINANCIAL_TRACKING=no` por padrão e `yes` apenas no CI isolado.
 - Manual: `docs/REPASSES_E_MARCOS_AF024.md`. Depende de homologação AF-018/AF-022.
+
+## Décimo quinto incremento — AF-025: orçamento físico-financeiro
+
+- `sql/020_project_budget.sql`: etapas numeradas com período e premissas,
+  itens físicos com unidade, quantidade exata até 0,001 e preço por unidade.
+- O banco gera o total monetário de cada item com arredondamento half-up,
+  como centavos inteiros, sem ponto flutuante; subtotais são `SUM` de itens
+  e total geral é `SUM` de todos os itens, mesmo além do limite de exibição.
+- Registros são append-only para o papel web e possuem evento com autor e data;
+  FORCE RLS e FK composta vinculam município/projeto/etapa/item.
+- APIs: `POST /api/projects/budget/stages` e
+  `POST /api/projects/budget/items`, acessíveis ao titular ou admin municipal.
+- Interface: `/projetos/[id]/orcamento`, comparação total geral versus
+  soma dos subtotais e explicação de premissas e custos.
+- `ENABLE_PROJECT_BUDGET=no` até homologação, ativado apenas em CI isolado.
+- Referência de operação: `docs/ORCAMENTO_FISICO_FINANCEIRO_AF025.md`.
+- **Não é** aprovação, cotação oficial, planilha de contratação, conciliação
+  bancária ou ferramenta de empenho. Não permite edição/exclusão no MVP;
+  alterações exigirão novo fluxo de revisão e trilha futura.
