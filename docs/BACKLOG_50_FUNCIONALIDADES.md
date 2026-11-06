@@ -188,6 +188,18 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - Manual de implementação: `docs/SECRETARIAS_TAREFAS_AF020.md`.
 - **Não é homologação de produção**; mantém NO-GO até aceite operacional.
 
+## Décimo primeiro incremento — AF-021: revisão e autorização internas
+
+- O titular do projeto ou administrador encaminha a candidatura para revisão.
+- Revisão técnica, devolução, reenvio e autorização interna com histórico e
+  número de revisão otimista; três responsáveis distintos nas etapas completas.
+- Portas automáticas contra checklist pendente, tarefas abertas e requisitos
+  obrigatórios ainda não atendidos; valores de evidência declarados pela equipe.
+- Páginas `/revisoes` e `/projetos/[id]/revisao`, com autorização segregada
+  e eventos imutáveis para a role web.
+- Sem submissão externa, assinatura digital ou protocolo automático (AF-022).
+- Manual: `docs/REVISAO_INTERNA_AF021.md`. Homologação operacional pendente.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
