@@ -220,3 +220,38 @@
 .expiry-filters a{font-size:12px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none}
 .expiry-filters a[aria-current=page]{border-color:#127f72;font-weight:700}
 @media(max-width:650px){.document-validity-form{grid-template-columns:1fr}.document-validity-actions .btn{width:100%}}
+
+/* AF-020: gestão de secretarias e tarefas da candidatura */
+.task-admin{display:grid;gap:18px}
+.task-input-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:780px}
+.task-input-form label,.task-change-form label{display:grid;gap:7px;font-size:12px;font-weight:700;min-width:0}
+.task-input-form input,.task-input-form select,.task-input-form textarea,
+.task-change-form select,.task-change-form input,.task-change-form textarea{
+ background:white;color:var(--ink);font:inherit;font-size:13px;width:100%;
+ min-width:0;border:1px solid #dce5ed;border-radius:8px;padding:10px 12px}
+.task-input-form textarea,.task-change-form textarea{resize:vertical}
+.task-input-form .btn,.task-change-form .btn{justify-self:start}
+.task-full{grid-column:1/-1}
+.task-member{padding:10px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.task-member span{font-size:13px;overflow-wrap:anywhere}
+.task-department{border-top:1px solid var(--line);padding:16px 0}
+.task-department h3{font-size:15px;margin:0 0 10px}
+.task-creator{margin:18px 0}
+.municipal-task-list{margin-top:18px}
+.municipal-task{padding:22px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.municipal-task h3{font-size:16px;margin:10px 0}
+.task-description{font-size:13px;white-space:pre-wrap;line-height:1.55}
+.task-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.task-summary>div{background:#f5f8fb;border-radius:8px;padding:12px;min-width:0}
+.task-summary dt{font-size:11px;color:#536879}
+.task-summary dd{font-size:12px;font-weight:650;margin:7px 0 0;overflow-wrap:anywhere}
+.task-change-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;background:#f7f9fb;border-radius:9px;max-width:800px}
+.task-audit{margin:14px 0 0;padding:12px;border:1px solid var(--line);border-radius:9px}
+.task-audit summary{cursor:pointer;font-size:12px;font-weight:700}
+.task-event{border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}
+.task-event strong{font-size:12px}
+.task-event p{font-size:12px;line-height:1.55;margin:5px 0}
+@media(max-width:700px){
+ .task-input-form,.task-change-form,.task-summary{grid-template-columns:1fr}
+ .task-change-form .btn,.task-input-form .btn{width:100%}
+}
