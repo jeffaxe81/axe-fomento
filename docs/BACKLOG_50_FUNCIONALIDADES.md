@@ -174,6 +174,20 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   **Não há envio automático de notificações externas.**
 - Manual: `docs/AGENDA_VALIDADE_DOCUMENTAL_AF019.md`.
 
+## Décimo incremento — AF-020: tarefas por secretaria
+
+- Secretarias municipais cadastradas por administrador, com integrantes ativos
+  e autorização granular para receber tarefas.
+- Cada tarefa indica projeto, secretaria, responsável, situação, prazo e revisão.
+- Troca de responsável dentro da secretaria, status e reprogramação do prazo
+  produzem eventos com autoria e justificativa, sem reescrever o passado.
+- Controle de concorrência por revisão; RLS e FKs evitam cruzamento de prefeitura.
+- Central `/tarefas`, ficha `/projetos/[id]/tarefas` e administração em
+  `/administracao/secretarias`.
+- Testes negativos de permissões e histórico. Sem notificações externas.
+- Manual de implementação: `docs/SECRETARIAS_TAREFAS_AF020.md`.
+- **Não é homologação de produção**; mantém NO-GO até aceite operacional.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
