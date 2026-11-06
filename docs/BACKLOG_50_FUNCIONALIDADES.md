@@ -231,3 +231,15 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - [Prompt Master](../PROMPT_MASTER.md) e [roadmap de 12 meses](ROADMAP_12_MESES.md).
 - [Antecipação de cinco meses](PLANO_ANTECIPACAO_5_MESES.md), [ingestão oficial](https://github.com/jeffaxe81/axe-fomento/issues/4) e [evolução V2–V4](https://github.com/jeffaxe81/axe-fomento/issues/6).
 - [Homologação operacional](https://github.com/jeffaxe81/axe-fomento/issues/13).
+
+## Décimo terceiro incremento — AF-023: diligências por protocolo
+
+- Registro manual de diligência vinculada a protocolo externo do próprio projeto,
+  com prazo, responsável municipal ativo, título e orientação; sem transmissão a portal.
+- Resposta municipal com texto e comprovante *versionado* do mesmo projeto; a
+  aplicação grava SHA-256 e versão do comprovante. Edição concorrente rejeitada.
+- Autoria e estados preservados em eventos sem UPDATE/DELETE pela role web.
+- Somente administrador ou titular do projeto cria; administrador ou responsável
+  designado responde. RLS, FK composta e anti-CSRF impedem vínculos cruzados.
+- Flag `ENABLE_DILIGENCE_RECORDS=no` por padrão, pendente de homologação.
+- Manual: `docs/DILIGENCIAS_PROTOCOLO_AF023.md`.

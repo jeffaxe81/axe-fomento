@@ -56,6 +56,7 @@ export default async function ProjectProtocols({params}:{params:Promise<{id:stri
     <p>{project.title} · {project.opportunity_title??'Sem oportunidade vinculada'}</p>
    </div>
    <div className="radar-actions">
+    <Link href={'/projetos/'+id+'/diligencias'} className="btn btn-outline">Diligências</Link>
     <Link href={'/projetos/'+id+'/revisao'} className="btn btn-outline">Revisão interna</Link>
     <Link href={'/projetos/'+id+'/documentos'} className="btn btn-outline">Documentos</Link>
     <Link href={'/projetos/'+id} className="btn btn-outline">Voltar ao projeto</Link>

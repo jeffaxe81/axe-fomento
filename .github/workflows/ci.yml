@@ -32,6 +32,7 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       ENABLE_DOCUMENT_UPLOADS: 'yes'
       ENABLE_EXTERNAL_PROTOCOL_RECORDS: 'yes'
+      ENABLE_DILIGENCE_RECORDS: 'yes'
       ATTACHMENT_ENCRYPTION_KEY: 'AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI='
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +50,7 @@ jobs:
       - name: Verify repeatable migrations and checksums
         run: |
           npm run db:migrate
-          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==17)process.exit(1);await db.end();"
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==18)process.exit(1);await db.end();"
       - name: Provision restricted application role
         run: npm run db:provision
       - name: Build
