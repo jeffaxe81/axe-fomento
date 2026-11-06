@@ -275,3 +275,17 @@
 .review-event p{font-size:12px;line-height:1.6;margin:6px 0;white-space:pre-wrap}
 .review-links{margin:16px 0}
 @media(max-width:650px){.internal-review-form button{width:100%}}
+
+/* AF-022: registro responsivo de protocolo e comprovante */
+.external-protocol-form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+gap:14px;max-width:800px;margin-top:17px}
+.external-protocol-form label {display:grid;gap:7px;font-size:12px;font-weight:700;min-width:0}
+.external-protocol-form input,.external-protocol-form select,.external-protocol-form textarea {
+background:white;color:var(--ink);font:inherit;font-size:13px;border:1px solid #dce5ed;
+border-radius:8px;padding:10px;width:100%;min-width:0;max-width:100%}
+.external-protocol-form textarea {resize:vertical}
+.external-protocol-form .btn {justify-self:start;white-space:normal}
+.external-protocol-form .protocol-full {grid-column:1/-1}
+.protocol-hash code,.external-protocol-form code {overflow-wrap:anywhere;word-break:break-all}
+@media(max-width:650px){.external-protocol-form{grid-template-columns:1fr}
+.external-protocol-form .btn{width:100%}}
