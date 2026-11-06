@@ -200,6 +200,18 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - Sem submissão externa, assinatura digital ou protocolo automático (AF-022).
 - Manual: `docs/REVISAO_INTERNA_AF021.md`. Homologação operacional pendente.
 
+## Décimo segundo incremento — AF-022: protocolo externo declarado
+
+- Registro manual do número, nome e HTTPS do portal, data, autor e nota.
+- Vínculo obrigatório com revisão AF-021 realmente `authorized`, versão
+  imutável de comprovante do mesmo projeto e SHA-256 da prova.
+- Bloqueio de protocolos duplicados por município/portal e de URLs locais ou
+  sem HTTPS; autenticação, CSRF, RLS e histórico não editável pela aplicação.
+- Página `/projetos/[id]/protocolos` com ficha e download autenticado.
+- Flag `ENABLE_EXTERNAL_PROTOCOL_RECORDS=no` por padrão.
+  Não envia, consulta nem certifica protocolo em órgão externo.
+- Manual: `docs/PROTOCOLOS_EXTERNOS_AF022.md`. Homologação pendente.
+
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
