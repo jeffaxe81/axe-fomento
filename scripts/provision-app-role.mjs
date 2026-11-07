@@ -54,6 +54,9 @@ try {
   await db.query('GRANT SELECT,INSERT ON public.municipal_financier_versions TO fomento_app');
   await db.query('GRANT SELECT ON public.bndes_city_solutions TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.municipal_bndes_review_events TO fomento_app');
+  await db.query('GRANT SELECT ON public.cofiex_official_references TO fomento_app');
+  await db.query('GRANT SELECT ON public.cofiex_consultation_stages TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_cofiex_consultation_events TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.opportunity_requirements TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_requirement_assessments TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_requirement_events TO fomento_app');

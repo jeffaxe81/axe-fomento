@@ -533,3 +533,45 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   Os 10.000 casos determinísticos do CI continuam obrigatórios.
 - Documentação `docs/BNDES_CIDADES_AF035.md` e
   `docs/AF035_FRENTES_ACELERACAO.md`.
+
+## Vigésimo sétimo incremento — AF-036: catálogo COFIEX/PFE e consulta por projeto
+
+- Catálogo público nacional com **8 links oficiais identificados** do
+  Ministério do Planejamento e do Portal de Financiamento Externo
+  (PFE): página da COFIEX, portal, legislação consolidada,
+  reuniões, calendário/pautas, perguntas frequentes,
+  capacitação e notícia/guia prático 2026.
+- **12 etapas internas de referência** ordenadas: escopo,
+  enquadramento normativo, orientações, critérios, acesso ao
+  PFE, preenchimento, validação/envio formal (externo), reunião
+  técnica GTEC, Pré-COFIEX, deliberação, negociação e execução.
+  Trata-se de roteiro para organização documental, não
+  da certificação de marcos ou status oficiais.
+- Migração `029_cofiex_reference_catalog.sql`: catálogos globais
+  `cofiex_official_references`, `cofiex_consultation_stages`
+  somente leitura para a role web; eventos append-only de
+  `project_cofiex_consultation_events` restritos por município
+  e projeto via `FORCE RLS` e FKs compostas.
+- Cada consulta humana registra etapa, código e URL oficial
+  congelados, autor, data, justificativa, estado, versão e
+  SHA-256 dos **metadados declarados**; jamais um comprovante
+  do próprio portal PFE ou de aprovação COFIEX.
+- API `POST /api/projects/cofiex/checks`: autenticação,
+  CSRF, Zod estrito, autorização admin/titular do projeto,
+  ausência de oportunidades fictícias, data não futura,
+  controle de concorrência `expectedRevision` e gravação
+  imutável (HTTP 409 em conflito).
+- Interfaces `/cofiex` (fontes) e `/projetos/[id]/cofiex`
+  (roteiro e observações) com trilha versionada individual em
+  `/projetos/[id]/cofiex/[stage]`, todas com links
+  oficiais, avisos jurídicos e recomendação de reconferência
+  após 90 dias.
+- `ENABLE_COFIEX_CATALOG=no` por padrão. Testes unitários e
+  PostgreSQL/HTTP com duas prefeituras, autorizações, sessões,
+  CSRF, concorrência, projeto fictício, integridade de seed,
+  RLS, role sem UPDATE/DELETE e histórico.
+- O sistema **não acessa, preenche nem protocola o PFE**,
+  não classifica decisões da COFIEX e não importa dados
+  de financiamento externo automaticamente.
+- Documentos `docs/COFIEX_AF036.md` e
+  `docs/AF036_OITO_FRENTES.md`.
