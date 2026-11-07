@@ -73,6 +73,8 @@ jobs:
         run: node --test tests/integration/*.test.mjs
       - name: Check restricted PostgreSQL role grants
         run: node --test tests/security/role-grants.test.mjs
+      - name: 10000 deterministic quality cases (AF-024/025/026, RLS, HTTP)
+        run: node scripts/quality-10000.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
       - name: Build isolated operations image
