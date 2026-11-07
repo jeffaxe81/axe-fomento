@@ -51,6 +51,7 @@ jobs:
       ENABLE_CONSORTIUMS: 'yes'
       ENABLE_CONSORTIUM_SHARING: 'yes'
       ENABLE_READINESS_EVALUATOR: 'yes'
+      ENABLE_FUNDING_PIPELINE: 'yes'
       ATTACHMENT_ENCRYPTION_KEY: 'AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI='
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +73,7 @@ jobs:
       - name: Verify repeatable migrations and checksums
         run: |
           npm run db:migrate
-          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==35)process.exit(1);await db.end();"
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==36)process.exit(1);await db.end();"
       - name: Provision restricted application role
         run: npm run db:provision
       - name: Build
@@ -107,8 +108,8 @@ jobs:
             axe-fomento:ci
           trap 'docker rm -f fomento-web-runtime-smoke >/dev/null 2>&1 || true' EXIT
           for i in $(seq 1 40); do
-            if curl --silent --fail http://127.0.0.1:3001/api/health > /dev/null; then
-              echo "Runtime web rootless e GET /api/health: OK"
+            if curl --silent --fail http://127.0.0.1:3001/login > /dev/null; then
+              echo "Runtime web rootless e GET /login: OK"
               exit 0
             fi
             sleep 2
