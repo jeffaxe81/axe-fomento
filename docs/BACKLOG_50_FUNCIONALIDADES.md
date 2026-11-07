@@ -215,7 +215,7 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 ## Contratos para validação das próximas ondas
 
 - **AF-009.** A issue #4 concentra as condições de configuração, termos de uso, retentativa e monitoramento. Antes da implementação do primeiro conector, registrar conjunto de programas, amostras da fonte e contrato de campos, incluindo prazo ausente e reprocessamento. AF-010 e AF-013 usam a mesma identificação de versão, item e fonte.
-- **AF-027.** Estimativa para um método de amortização inicial. Registrar o método, a regra de carência e exemplos com totais esperados antes de homologar a simulação.
+- **AF-027.** A primeira versão adota SAC mensal com pagamento de juros na carência. As premissas e os exemplos para homologação estão no [manual do orçamento](ORCAMENTO_FISICO_FINANCEIRO_AF025.md#cenários-de-parcelas--af-027).
 - **AF-041.** O período usa a data do protocolo. Uma reapresentação do mesmo projeto na mesma fonte e modalidade integra a mesma coorte, com a situação mais recente até a data de corte.
 - **AF-045 e AF-046.** Validar repetibilidade e tratamento uniforme de entradas equivalentes. Uma ideia pode seguir até relatório com requisitos pendentes de comprovação. Impedimentos confirmados exigem regra e evidência.
 
@@ -290,3 +290,13 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   registros fora dos 100 cadastros mais recentes, reconciliação da base da
   simulação e tentativas de leitura e inserção entre contas no PostgreSQL.
   A homologação operacional segue na issue #13.
+
+## Décimo sétimo incremento — AF-027
+
+- **Cenários de parcelas.** A página do projeto compara dois cenários SAC
+  com o mesmo principal e premissas próprias de taxa mensal, amortização e
+  carência. O total do orçamento é a base sugerida. A equipe pode informar
+  outro principal e conferir juros, prazo, parcelas e total pago.
+- **Validação.** Os testes cobrem reconciliação em centavos, limites da
+  simulação, acesso à página e isolamento entre municípios. A homologação
+  operacional segue na issue #13.

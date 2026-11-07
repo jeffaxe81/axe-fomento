@@ -93,3 +93,28 @@ faltam R$ 2.500,00.
 
 As premissas e o resultado ficam na página do navegador para análise da
 equipe municipal. A homologação operacional segue na issue #13.
+
+## Cenários de parcelas — AF-027
+
+Abra **Simular parcelas** no orçamento do projeto. A página sugere o total
+de todos os itens como principal e aceita outro valor informado em reais,
+com até 12 dígitos inteiros e duas casas decimais.
+A comparação usa o mesmo principal nos dois cenários. Cada cenário tem taxa
+fixa de 0 a 100% ao mês, até quatro casas decimais, 1 a 360 meses de amortização
+e 0 a 60 meses de carência. As premissas e os resultados ficam na página do
+navegador para o planejamento da equipe.
+
+O Sistema de Amortização Constante (SAC) divide o principal entre os meses de
+amortização. Se a divisão em centavos tiver resto, as primeiras parcelas
+recebem um centavo a mais até distribuir todo o principal. Os juros do mês
+incidem sobre o saldo no início do mês e são arredondados ao centavo mais
+próximo, com meio centavo para cima. Na carência anterior à amortização,
+a simulação usa pagamentos mensais de juros calculados sobre o principal.
+[Referência da CAIXA sobre o método SAC](https://caixanoticias.caixa.gov.br/Paginas/Not%C3%ADcias/2026/02-FEVEREIRO/SAC-ou-Price-entenda-as-diferen%C3%A7as-entre-os-sistemas-de-amortiza%C3%A7%C3%A3o-e-fa%C3%A7a-a-melhor-escolha.aspx)
+
+| Principal | Taxa mensal | Amortização | Carência | Pagamentos em ordem | Juros totais | Total pago |
+| --- | --- | --- | --- | --- | --- | --- |
+| R$ 1.200,00 | 2% | 3 meses | 1 mês | R$ 24,00, R$ 424,00, R$ 416,00 e R$ 408,00 | R$ 72,00 | R$ 1.272,00 |
+| R$ 1.200,00 | 1% | 4 meses | 0 meses | R$ 312,00, R$ 309,00, R$ 306,00 e R$ 303,00 | R$ 30,00 | R$ 1.230,00 |
+
+A homologação operacional segue na issue #13.

@@ -165,6 +165,47 @@ test('AF-025: etapas, itens, soma exata, tenant, auditoria e permissões',async 
    assert.match(foreignPanel,/Cadastre itens no orçamento/);
    assert.doesNotMatch(foreignPanel,/R\$ 264,90/);
   });
+  const financingPath='/projetos/'+projectA+'/financiamento';
+  const financingHeading=/<h1\b[^>]*>Cenários de parcelas<\/h1>/;
+  const financingBase=/<dt\b[^>]*>Total do orçamento do projeto<\/dt>\s*<dd\b[^>]*>([\s\S]*?)<\/dd>/;
+  const visibleText=html=>html?.replace(/<[^>]+>/g,'').trim();
+  await t.test('AF-027: orçamento abre cenários de parcelas com o total do projeto',async()=>{
+   const budget=await page('/projetos/'+projectA+'/orcamento',owner);
+   assert.equal(budget.status,200);
+   const links=[...budget.html.matchAll(/<a\b[^>]*\bhref="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
+   assert.ok(links.some(([,href,body])=>href===financingPath&&visibleText(body)==='Simular parcelas'),
+    'O orçamento deve apontar para a simulação do mesmo projeto');
+
+   const own=await page(financingPath,owner);
+   assert.equal(own.status,200);
+   assert.match(own.html,financingHeading);
+   assert.equal(visibleText(own.html.match(financingBase)?.[1]),'R$ 264,90');
+   const scenarios=[...own.html.matchAll(/<fieldset\b[^>]*>([\s\S]*?)<\/fieldset>/g)];
+   for(const letter of ['A','B']){
+    const scenario=scenarios.find(([,body])=>
+     visibleText(body.match(/<legend\b[^>]*>([\s\S]*?)<\/legend>/)?.[1])==='Cenário '+letter);
+    assert.ok(scenario,'A simulação deve apresentar o cenário '+letter);
+    const labels=[...scenario[1].matchAll(/<label\b[^>]*>([\s\S]*?)<\/label>/g)]
+     .map(([,label])=>visibleText(label));
+    for(const field of ['Taxa mensal','Prazo de amortização','Carência'])
+     assert.ok(labels.some(label=>label.startsWith(field)),`Cenário ${letter}: campo ${field} ausente`);
+    assert.equal([...scenario[1].matchAll(/<input\b/g)].length,3);
+   }
+  });
+  await t.test('AF-027: cenários de parcelas exigem sessão e preservam o escopo municipal',async()=>{
+   assert.equal((await page(financingPath)).status,307);
+   assert.equal((await page('/projetos/id-invalido/financiamento',owner)).status,404);
+   const denied=await page(financingPath,foreign);
+   assert.equal(denied.status,404);
+   assert.doesNotMatch(denied.html,financingHeading);
+   assert.doesNotMatch(denied.html,/R\$ 264,90/);
+
+   const empty=await page('/projetos/'+projectB+'/financiamento',foreign);
+   assert.equal(empty.status,200);
+   assert.match(empty.html,financingHeading);
+   assert.equal(visibleText(empty.html.match(financingBase)?.[1]),'R$ 0,00');
+   assert.doesNotMatch(empty.html,/R\$ 264,90/);
+  });
   await t.test('eventos insert-only, RLS forçada e composição do total',async()=>{
    const stages=(await admin.query('SELECT COUNT(*)::int AS total FROM project_budget_stages '+
     'WHERE project_id=$1',[projectA])).rows[0].total;

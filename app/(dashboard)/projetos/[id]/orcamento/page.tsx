@@ -53,6 +53,7 @@ export default async function ProjectBudget({params}:{params:Promise<{id:string}
   <div className="page-heading">
    <div><h1>Orçamento por etapas</h1><p>{project.title}</p></div>
    <div className="radar-actions">
+    <Link href={'/projetos/'+id+'/financiamento'} className="btn btn-outline">Simular parcelas</Link>
     <Link href={'/projetos/'+id+'/financeiro'} className="btn btn-outline">Repasses</Link>
     <Link href={'/projetos/'+id} className="btn btn-outline">Voltar ao projeto</Link>
    </div>
