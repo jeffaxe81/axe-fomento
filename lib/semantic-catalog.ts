@@ -34,7 +34,8 @@ export const OPPORTUNITY_SEMANTIC_SQL=terms+`,
    ) FROM terms t
   ),0)::integer AS relevance
  FROM opportunities o
- WHERE EXISTS(SELECT 1 FROM terms t WHERE
+ WHERE EXISTS(SELECT 1 FROM municipalities m WHERE m.id=$1::uuid)
+  AND EXISTS(SELECT 1 FROM terms t WHERE
    to_tsvector('portuguese'::regconfig,o.title || ' ' || o.provider) @@ t.needle
    OR to_tsvector('portuguese'::regconfig,coalesce(array_to_string(o.areas,' '),'')) @@ t.needle
  )
