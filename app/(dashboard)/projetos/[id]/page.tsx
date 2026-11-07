@@ -25,6 +25,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <div className="radar-actions">
         <Link href={'/projetos/'+project.id+'/requisitos'} className="btn btn-primary">Matriz de requisitos</Link>
         <Link href={'/projetos/'+project.id+'/cofiex'} className="btn btn-outline">Consulta COFIEX</Link>
+        <Link href="/consorcios" className="btn btn-outline">Cooperação consorciada</Link>
         <Link href={'/projetos/'+project.id+'/proposta'} className="btn btn-outline">Rascunho de proposta</Link>
         <Link href={'/projetos/'+project.id+'/extracao-edital'} className="btn btn-outline">Extração assistida de edital</Link>
         <Link href={'/projetos/'+project.id+'/enquadramento'} className="btn btn-outline">Mapa de enquadramento</Link>

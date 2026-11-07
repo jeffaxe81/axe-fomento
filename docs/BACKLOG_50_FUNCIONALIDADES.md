@@ -575,3 +575,46 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   de financiamento externo automaticamente.
 - Documentos `docs/COFIEX_AF036.md` e
   `docs/AF036_OITO_FRENTES.md`.
+
+## Incrementos AF-037 a AF-040: meta de 80% (40 de 50 funcionalidades)
+
+- **AF-037 — Cooperação internacional.** Registra chamadas/referências
+  por instituição, idioma, abrangência, modalidade, URL HTTPS,
+  data humana de conferência e status sem afirmar chamada aberta.
+  Tabela `international_cooperation_calls`; API
+  `POST /api/cooperation/calls`, tela `/cooperacao`.
+- **AF-038 — Rotas de candidatura.** Vincula a chamada uma ou mais
+  rotas diretas, intermediadas ou pendentes de confirmação, com
+  contato institucional, URL e passos documentais. Registro
+  humano não verifica candidatura automática. Tabela
+  `international_application_routes` e
+  `POST /api/cooperation/routes`.
+- **AF-039 — Consórcios municipais.** O administrador da
+  prefeitura fundadora cria consórcio e convida outra
+  prefeitura; adesão depende de aceite expresso por
+  administrador do município convidado. Recusa/revogação
+  registrada em `consortium_membership_events`. Tabelas
+  `municipal_consortia`, `consortium_memberships`,
+  APIs `/api/consortia`, `/invitations`,
+  `/membership-state` e tela `/consorcios`.
+- **AF-040 — Espaço compartilhado de cooperação.** Apenas
+  título e resumo explicitamente redigidos pelo gestor/
+  administrador do projeto de origem, com justificativa,
+  são publicados ao consórcio. Administradores ativos de
+  municípios com adesão aceita podem ler o resumo, mas
+  nunca a carteira original ou seus anexos.
+  `consortium_project_shares`, `consortium_share_events`,
+  APIs de criação/revogação e página de URL direta
+  `/consorcios/compartilhados/[id]`. Revogação do resumo
+  ou da adesão elimina imediatamente novos acessos.
+- Quatro migrações `030` a `033`, total esperado **33**,
+  com FORCE RLS, role de menor privilégio e constraints
+  compostas; flags de escrita default `no`.
+- Testes previstos: três prefeituras, autenticação, CSRF,
+  distinção entre convite e adesão, proibição de acesso
+  direto a projetos, revogação, concorrência,
+  UPDATE/DELETE negados e bateria geral de 10.000.
+- Implementação corresponde a **40/50 = 80% do backlog de código
+  somente após CI integral verde**. Homologação
+  legal/operacional issue #13 permanece pendente.
+- Manual: `docs/AF037_AF040_ENTREGA_80.md`.

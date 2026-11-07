@@ -22,6 +22,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/financiadores">▥ <span>Financiadores nacionais</span></Link>
         <Link href="/bndes-cidades">⌑ <span>BNDES Cidades</span></Link>
         <Link href="/cofiex">▧ <span>COFIEX e PFE</span></Link>
+        <Link href="/cooperacao">◈ <span>Cooperação internacional</span></Link>
+        <Link href="/consorcios">▤ <span>Consórcios municipais</span></Link>
         {user.role === 'admin' && <Link href="/fontes">⊞ <span>Fontes oficiais</span></Link>}
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
         <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>

@@ -57,6 +57,16 @@ try {
   await db.query('GRANT SELECT ON public.cofiex_official_references TO fomento_app');
   await db.query('GRANT SELECT ON public.cofiex_consultation_stages TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_cofiex_consultation_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.international_cooperation_calls TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.international_application_routes TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_consortia TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.consortium_memberships TO fomento_app');
+  await db.query('GRANT UPDATE(state,revision,updated_by,updated_actor_municipality_id,updated_at) ON public.consortium_memberships TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.consortium_membership_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.consortium_project_shares TO fomento_app');
+  await db.query('GRANT UPDATE(enabled,revision,updated_by,updated_at) ON public.consortium_project_shares TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.consortium_share_events TO fomento_app');
+  await db.query('GRANT EXECUTE ON FUNCTION public.consortium_municipality_directory(uuid,uuid) TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.opportunity_requirements TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_requirement_assessments TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.project_requirement_events TO fomento_app');
