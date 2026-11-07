@@ -47,7 +47,7 @@ test('AF-029: modalidade, versão normativa vinculada, revisão humana e isolame
    "'2026-02-01','art. 3',"+
    "'Dispositivo sintético para avaliação de projeto municipal.',"+
    "'Uso apenas em ambiente descartável com evidência declarada.',"+
-   "encode(digest('vector'||$2::text,'sha256'),'hex'),$3) RETURNING id",
+   "encode(digest('vector'||$2::uuid::text,'sha256'),'hex'),$3) RETURNING id",
    [municipality,x.rows[0].id,who.id]);
   return v.rows[0].id;
  }
