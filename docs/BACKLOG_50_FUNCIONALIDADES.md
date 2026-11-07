@@ -422,3 +422,35 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   10.000 casos permanece obrigatória no CI.
 - `ENABLE_PROPOSAL_DRAFTS=no` por padrão até homologação.
 - Manual: `docs/RASCUNHO_PROPOSTA_AF032.md`.
+
+## Vigésimo quarto incremento — AF-033: revisão editorial da versão gerada
+
+- Fluxo de revisão editorial com decisões `aprovada` e `devolvida`
+  para **versão imutável exata** do rascunho AF-032. A aprovação é
+  **somente interna**, não equivale a protocolo de proposta, homologação
+  jurídica, validação de edital ou concessão de recursos.
+- Apenas administrador municipal ativo, **distinto do autor daquela
+  versão**, pode decidir; projeto fictício não pode receber decisão.
+  Analistas/titulares podem consultar o histórico, não aprovar.
+- O conteúdo com `[PREENCHER E VALIDAR ...]` não pode receber
+  aprovação editorial. O aprovador precisa declarar ciência de
+  pendências e fontes ainda não verificadas, mesmo que o texto tenha
+  sido preenchido manualmente.
+- Revisões são eventos append-only com autor, data, justificativa,
+  decisão e versão exata, com `expectedReviewRevision` para detectar
+  concorrência (HTTP 409). Uma nova versão não herda aprovação anterior.
+- Tela `/projetos/[id]/proposta` mostra estado da versão atual
+  e acesso às decisões históricas por versão.
+  `/projetos/[id]/proposta/revisoes/[versionId]` mostra trilha completa.
+- API `POST /api/projects/proposals/reviews` com autenticação, CSRF,
+  Zod `.strict()`, autorização municipal e validação SQL atômica.
+- Migração `026_proposal_content_reviews.sql`, FORCE RLS,
+  FKs compostas por município/projeto/rascunho/versão e role web
+  com apenas `SELECT,INSERT`.
+- Testes unitários e integração incluindo separação autor/revisor,
+  duas prefeituras, pendências, decisão em versão desatualizada,
+  concorrência e integridade da trilha. Mantida bateria de 10.000
+  cenários determinísticos.
+- Por padrão `ENABLE_PROPOSAL_CONTENT_REVIEWS=no` até homologação.
+- Manual: `docs/REVISAO_CONTEUDO_AF033.md`.
+- Coordenação de cinco frentes: `docs/AF033_CINCO_FRENTES.md`.
