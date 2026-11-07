@@ -14,7 +14,7 @@ type Event={case_id:string;revision:number;event_kind:string;evidence_url:string
 type Alert={modality:string;days_ahead:number};
 const money=(cents:string)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'})
  .format(Number(cents)/100);
-export default async function MunicipalFunding(){
+export default async function MunicipalFunding({searchParams}:{searchParams:Promise<{comparar?:string|string[]}>}){
  const actor=await requireSession();const enabled=process.env.ENABLE_FUNDING_PIPELINE==='yes';
  const [offers,cases,projects,events,subscriptions]=await Promise.all([
   queryForMunicipality<Offer>(actor.municipality_id,
@@ -45,8 +45,12 @@ export default async function MunicipalFunding(){
  const alerts=subscriptions.flatMap(s=>alertsFor(offers.filter(o=>
   s.modality==='todas'||s.modality===o.modality),s.days_ahead));
  const uniqueAlerts=[...new Map(alerts.map(a=>[a.id,a])).values()];
- const latest=offers.slice(0,3),today=new Date().toISOString().slice(0,10);
- const compare=compareOffers(latest,today);
+ const search=await searchParams;
+ const chosen=(Array.isArray(search.comparar)?search.comparar:[search.comparar]).filter(
+  (v):v is string=>typeof v==='string').slice(0,3);
+ const selected=chosen.length?offers.filter(o=>chosen.includes(o.id)).slice(0,3):offers.slice(0,3);
+ const today=new Date().toISOString().slice(0,10);
+ const compare=compareOffers(selected,today);
  return <>
   <div className="section-eyebrow">CAPTAÇÃO DE RECURSOS · AF-051 A AF-065</div>
   <div className="page-heading"><div><h1>Jornada de financiamento municipal</h1>
@@ -68,7 +72,8 @@ export default async function MunicipalFunding(){
     <article className="stat-card"><strong>{money(summary.declaredAwardCents)}</strong><span>Valores aprovados declarados</span></article>
     <article className="stat-card"><strong>{money(summary.declaredPaidCents)}</strong><span>Desembolsos declarados</span></article>
    </div>
-   <p className="help">Não há conciliação bancária ou confirmação automática pelo financiador.</p>
+   <p className="help">Não há conciliação bancária ou confirmação automática pelo financiador.
+    Exportação para conferência: <a href="/api/funding/reports?format=csv">Baixar CSV de registros declarados</a>.</p>
   </section>
   <section className="panel">
    <h2>AF-051–053 · Catálogo e consulta a referências oficiais</h2>
@@ -88,10 +93,19 @@ export default async function MunicipalFunding(){
   <section className="panel">
    <h2>AF-054 e AF-057 · Conferência de validade e comparação</h2>
    <p>Comparação indicativa de até três referências, sem inferir concessão nem condições ausentes.</p>
+   <form action="/captacao" method="get">
+    <fieldset><legend>Selecione até três referências para comparar</legend>
+     {offers.slice(0,30).map(o=><label key={o.id} style={{display:'inline-block',margin:'0 1rem .5rem 0'}}>
+      <input type="checkbox" name="comparar" value={o.id} defaultChecked={selected.some(s=>s.id===o.id)}/>
+      {' '+o.title}</label>)}
+    </fieldset>
+    <button className="btn btn-outline" type="submit">Comparar seleção</button>
+   </form>
    <div className="table-scroll" tabIndex={0} role="region" aria-label="Comparativo de fontes">
-    <table><thead><tr><th scope="col">Fonte</th><th scope="col">Condição</th><th scope="col">Status</th><th scope="col">Prazo</th></tr></thead>
+    <table><thead><tr><th scope="col">Fonte</th><th scope="col">Condição</th><th scope="col">Status</th><th scope="col">Prazo</th><th scope="col">Taxa informada</th><th scope="col">Prazo de crédito</th></tr></thead>
      <tbody>{compare.map((x:{id:string;title:string;modality:string;status:string;closesOn:string|null})=><tr key={x.id}><td>{x.title}</td><td>{x.modality}</td>
-      <td>{x.status}</td><td>{x.closesOn??'Não apurado'}</td></tr>)}</tbody></table>
+      <td>{x.status}</td><td>{x.closesOn??'Não apurado'}</td>
+      <td>{x.annualRate??'Não apurada'}</td><td>{x.termMonths??'Não apurado'}</td></tr>)}</tbody></table>
    </div>
   </section>
   <section className="panel">
