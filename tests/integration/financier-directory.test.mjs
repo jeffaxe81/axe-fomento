@@ -123,7 +123,7 @@ test('AF-034: financiadores nacionais com curadoria municipal, fontes, filtros e
     area:'saude',modalidade:'credito'});
    const p1=await get('/financiadores?'+terms,analystA);
    assert.equal(p1.status,200);
-   assert.ok(p1.html.includes('Página 1'));
+   assert.ok(p1.html.includes('aria-label="Paginação de financiadores"'));
    assert.ok(p1.html.includes('pagina=2'));
    assert.equal((p1.html.match(/data-financier-id="/g)||[]).length,25);
    const p2=await get('/financiadores?'+terms+'&pagina=2',analystA);
@@ -183,7 +183,7 @@ test('AF-034: financiadores nacionais com curadoria municipal, fontes, filtros e
     'data-version="'+version+'"'));
    assert.ok(detail.html.includes('Revisão necessária'));
    assert.ok(detail.html.includes('15/01/2026'));
-   assert.ok(detail.html.includes('não comprova oferta disponível'));
+   assert.ok(detail.html.includes('não pode comprovar oferta disponível'));
   });
   await t.test('FORCE RLS e histórico append-only sob credencial restrita',async()=>{
    assert.equal((await app.query('SELECT * FROM municipal_financiers')).rowCount,0);
