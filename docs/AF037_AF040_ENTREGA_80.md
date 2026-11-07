@@ -31,7 +31,7 @@ não podem ser revogadas retroativamente.
 
 ## Segurança
 
-- PostgreSQL com migrações 030–033: RLS obrigatório,
+- PostgreSQL com migrações 030–034: RLS obrigatório,
   chaves compostas, eventos append-only e grants
   UPDATE limitados às colunas de status/revisão.
 - API com sessão, CSRF, Zod estrito, permissão de
@@ -54,3 +54,18 @@ Habilitação de escrita apenas em CI descartável até
 a homologação institucional, jurídica e operacional da issue #13.
 Atingir 40/50 = 80% mede incremento funcional codificado
 e testado; não indica prontidão para produção.
+
+## Verificação CI
+
+Execução [42384504822](https://github.com/jeffaxe81/axe-fomento/actions/runs/42384504822):
+103 testes unitários, 168 de integração, 1 de permissões,
+10.000 cenários determinísticos genéricos, **10.272 verificações
+com zero falhas**. Também passaram 34 migrações repetíveis,
+build Next.js, imagens Docker, restauração de backup criptografado
+e auditoria de dependências.
+
+A migração aditiva `034_consortium_rls_visibility.sql`
+corrige a comparação do identificador externo no EXISTS da
+política RLS de consórcios. O teste de ponta a ponta garante
+que o convidado veja seu convite, aceite, consulte somente
+resumos autorizados e perca esse acesso por revogação.

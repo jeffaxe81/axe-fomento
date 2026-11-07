@@ -607,14 +607,14 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   APIs de criação/revogação e página de URL direta
   `/consorcios/compartilhados/[id]`. Revogação do resumo
   ou da adesão elimina imediatamente novos acessos.
-- Quatro migrações `030` a `033`, total esperado **33**,
+- Cinco migrações `030` a `034`, total **34** após correção aditiva de RLS,
   com FORCE RLS, role de menor privilégio e constraints
   compostas; flags de escrita default `no`.
-- Testes previstos: três prefeituras, autenticação, CSRF,
+- Testes aprovados em CI: três prefeituras, autenticação, CSRF,
   distinção entre convite e adesão, proibição de acesso
   direto a projetos, revogação, concorrência,
   UPDATE/DELETE negados e bateria geral de 10.000.
 - Implementação corresponde a **40/50 = 80% do backlog de código
-  somente após CI integral verde**. Homologação
+  com CI integral aprovado**. Homologação
   legal/operacional issue #13 permanece pendente.
 - Manual: `docs/AF037_AF040_ENTREGA_80.md`.
