@@ -21,6 +21,9 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
+      POSTGRES_PASSWORD: test_password_local_only
+      POSTGRES_APP_PASSWORD: ci_app_password_only_2026_test
+      BACKUP_ENCRYPTION_KEY: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE='
       DATABASE_ADMIN_URL: postgresql://fomento:test_password_local_only@127.0.0.1:5432/fomento_test
       DATABASE_URL: postgresql://fomento_app:ci_app_password_only_2026_test@127.0.0.1:5432/fomento_test
       APP_DB_PASSWORD: ci_app_password_only_2026_test
@@ -60,6 +63,10 @@ jobs:
         run: npm test
       - name: Type check
         run: npm run lint
+      - name: Operational guardrails and Compose validation
+        run: |
+          node scripts/ops-preflight.mjs static
+          docker compose config --quiet
       - name: Initialize test database
         run: npm run db:migrate
       - name: Verify repeatable migrations and checksums

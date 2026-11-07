@@ -11,7 +11,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/fomento.example.gov.br/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/fomento.example.gov.br/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    client_max_body_size 1m;
+    client_max_body_size 3m; # app accepts private attachments up to 2 MiB
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;

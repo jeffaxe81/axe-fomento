@@ -51,10 +51,36 @@ services:
       ENABLE_OFFICIAL_SOURCE_SYNC: ${ENABLE_OFFICIAL_SOURCE_SYNC:-no}
       ENABLE_DOCUMENT_UPLOADS: ${ENABLE_DOCUMENT_UPLOADS:-no}
       ENABLE_EXTERNAL_PROTOCOL_RECORDS: ${ENABLE_EXTERNAL_PROTOCOL_RECORDS:-no}
+      ENABLE_DILIGENCE_RECORDS: ${ENABLE_DILIGENCE_RECORDS:-no}
+      ENABLE_FINANCIAL_TRACKING: ${ENABLE_FINANCIAL_TRACKING:-no}
+      ENABLE_PROJECT_BUDGET: ${ENABLE_PROJECT_BUDGET:-no}
+      ENABLE_NORMATIVE_REGISTRY: ${ENABLE_NORMATIVE_REGISTRY:-no}
+      ENABLE_MODALITY_MAP: ${ENABLE_MODALITY_MAP:-no}
+      ENABLE_EDICT_ASSISTED_EXTRACTION: ${ENABLE_EDICT_ASSISTED_EXTRACTION:-no}
+      ENABLE_SEMANTIC_CATALOG: ${ENABLE_SEMANTIC_CATALOG:-no}
+      ENABLE_PROPOSAL_DRAFTS: ${ENABLE_PROPOSAL_DRAFTS:-no}
+      ENABLE_PROPOSAL_CONTENT_REVIEWS: ${ENABLE_PROPOSAL_CONTENT_REVIEWS:-no}
+      ENABLE_FINANCIER_DIRECTORY: ${ENABLE_FINANCIER_DIRECTORY:-no}
+      ENABLE_BNDES_CITY_CATALOG: ${ENABLE_BNDES_CITY_CATALOG:-no}
+      ENABLE_COFIEX_CATALOG: ${ENABLE_COFIEX_CATALOG:-no}
+      ENABLE_INTERNATIONAL_COOPERATION: ${ENABLE_INTERNATIONAL_COOPERATION:-no}
+      ENABLE_CONSORTIUMS: ${ENABLE_CONSORTIUMS:-no}
+      ENABLE_CONSORTIUM_SHARING: ${ENABLE_CONSORTIUM_SHARING:-no}
+      ENABLE_READINESS_EVALUATOR: ${ENABLE_READINESS_EVALUATOR:-no}
       ATTACHMENT_ENCRYPTION_KEY: ${ATTACHMENT_ENCRYPTION_KEY:-}
       NODE_ENV: production
     depends_on:
       db: { condition: service_healthy }
+    # Health status is used by "docker compose ps"; proxy remains the only public ingress.
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health', r => { r.resume(); process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    init: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
     ports: ["127.0.0.1:3000:3000"]
     networks: [private]
 volumes:
