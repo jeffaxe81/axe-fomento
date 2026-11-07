@@ -27,6 +27,7 @@ export default async function FinancierDirectory({searchParams}:{
   <div className="section-eyebrow">REDE NACIONAL · AF-034</div>
   <div className="page-heading"><div>
    <h1>Diretório de financiadores nacionais</h1>
+   <p><Link href="/bndes-cidades">Consultar soluções BNDES Cidades com fontes oficiais</Link></p>
    <p>Instituições e referências registradas pela prefeitura, por modalidade e área.</p>
   </div></div>
   <section className="panel">

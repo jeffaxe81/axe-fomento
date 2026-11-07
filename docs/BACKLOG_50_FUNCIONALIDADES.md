@@ -484,3 +484,52 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   conflito, restrição de UPDATE/DELETE e 10.000 cenários no CI.
 - Manual `docs/DIRETORIO_FINANCIADORES_AF034.md`; revisão técnica
   organizada em seis frentes `docs/AF034_SEIS_FRENTES.md`.
+
+## Vigésimo sexto incremento — AF-035: catálogo de fontes BNDES Cidades
+
+- **37 referências institucionais reais** de soluções vinculadas pelo portal
+  `https://cidades.bndes.gov.br/` consultado em 07/11/2026.
+  Cada entrada inclui título, área, resumo de referência e **link
+  exato** da página da solução oficial. O número de 37 representa
+  páginas únicas identificadas em diferentes perfis, **não**
+  quantidade de linhas de crédito abertas e nem total exibido para
+  todo porte municipal em uma busca específica.
+- Dataset público nacional `bndes_city_solutions` carregado
+  pela migração `028_bndes_cities_catalog.sql`, com revisão do
+  índice oficial declarada na data de referência. Não há
+  scraping em produção, download automático ou inferência
+  de condições e taxas.
+- Página `/bndes-cidades`: busca literal, filtros por área,
+  conferência municipal, estado da fonte e disponibilidade
+  **declarada**, ordenação determinística, paginação de 25 e
+  painel com contagem de referências conferidas/pendentes.
+- Página `/bndes-cidades/[code]`: URL oficial, histórico
+  append-only, responsável, data, nota, revisão, SHA-256 dos
+  metadados e alertas de conferência com idade 90+ dias.
+- Estados de fonte: página conferida pela equipe,
+  atualização pendente, página indisponível. Estados de
+  disponibilidade declarada: não apurada, possibilidade
+  mencionada sem oferta confirmada, oferta não localizada.
+  Nenhum estado afirma crédito aprovado, taxa atual,
+  condição jurídica ou disponibilidade em tempo real.
+- **Alto volume de revisão:** componente de seleção e API
+  `POST /api/bndes-cidades/reviews/batch` para 1 a 20
+  referências por requisição, com nota, data, estado, confirmação
+  das limitações e `expectedRevision` por item. Gravação
+  atômica (todas ou nenhuma), serialização por município e
+  conflito HTTP 409 quando há versões divergentes.
+- Segurança: somente administrador ativo grava; usuários
+  autenticados consultam referências nacionais, mas as
+  avaliações municipais são isoladas por `FORCE RLS`.
+  Role web possui apenas SELECT e INSERT nos eventos,
+  e SELECT no catálogo global.
+- `ENABLE_BNDES_CITY_CATALOG=no` por padrão até
+  homologação da issue #13. Sem merge nem deploy automático.
+- Testes: integridade das 37 URLs, filtros, paginação,
+  registro unitário, lote de 20, falha fechada em stale,
+  concorrência com revisão individual, CSRF, papeis,
+  RLS intermunicipal, imutabilidade e 24 consultas HTTP
+  simultâneas (verificação funcional, não benchmark de RPS).
+  Os 10.000 casos determinísticos do CI continuam obrigatórios.
+- Documentação `docs/BNDES_CIDADES_AF035.md` e
+  `docs/AF035_FRENTES_ACELERACAO.md`.

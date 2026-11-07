@@ -1,0 +1,11 @@
+export declare const BNDES_AREAS:Record<string,string>;
+export declare const BNDES_SOURCE_STATES:Record<string,string>;
+export declare const BNDES_AVAILABILITY_STATES:Record<string,string>;
+export type ReviewInput={code:string;expectedRevision:number;
+ sourceState:string;availabilityState:string;checkedOn:string;
+ note:string;acknowledgedLimits:true};
+export declare function bndesReviewInput(raw:any,today:string):ReviewInput|null;
+export declare function bndesFilters(raw?:any):{search:string;area:string;
+ sourceState:string;availability:string;reviewed:string;page:number};
+export declare function bndesHref(filters:any,page?:number):string;
+export declare function bndesReferenceAge(date:string|null,today:string):string;
