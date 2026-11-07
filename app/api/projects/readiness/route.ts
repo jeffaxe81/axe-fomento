@@ -100,7 +100,7 @@ export async function POST(request:Request){
    if(row)source={id:row.id,title:row.title,sha256:hash(row)};
   }
   if(!source)return fail('Versão documental ou item financeiro indisponível',404);
-  const [r]=await queryForMunicipality<{id:string}|undefined>(actor.municipality_id,
+  const [r]=await queryForMunicipality<{id:string}>(actor.municipality_id,
    'INSERT INTO project_readiness_evidence(municipality_id,project_id,kind,document_version_id,budget_item_id,snapshot_sha256,title,note,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT DO NOTHING RETURNING id',
    [actor.municipality_id,d.projectId,d.kind,d.kind==='document'?source.id:null,d.kind==='budget'?source.id:null,source.sha256,source.title,d.note,actor.id],actor.id);
   return r?.id?success({id:r.id}):fail('Evidência já vinculada',409);
