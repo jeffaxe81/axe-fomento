@@ -103,9 +103,15 @@ function baseCases(){
    BigInt((rnd()%999999999)+1);
   const cents=i%8<2?1n:BigInt(rnd()%1000000000);
   const exact=exactLine(milli,cents);
+  // AF-025 explicitly rejects totals above R$ 999.999.999.999,99.
+  const allowed=BigInt(exact)<=99999999999999n;
   verify('arredondamento-orcamento',i,()=>{
-   assert.equal(budgetLineTotalCents(milli,cents),exact);
+   assert.equal(budgetLineTotalCents(milli,cents),allowed?exact:null);
    const input=budgetInput(qtyText(milli),money(cents));
+   if(!allowed){
+    assert.equal(input,null,'Valor acima do teto deve falhar fechado');
+    return;
+   }
    assert.ok(input);
    assert.equal(input.quantityMilli,milli.toString());
    assert.equal(input.unitCostCents,cents.toString());
