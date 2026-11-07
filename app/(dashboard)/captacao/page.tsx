@@ -90,7 +90,7 @@ export default async function MunicipalFunding(){
    <p>Comparação indicativa de até três referências, sem inferir concessão nem condições ausentes.</p>
    <div className="table-scroll" tabIndex={0} role="region" aria-label="Comparativo de fontes">
     <table><thead><tr><th scope="col">Fonte</th><th scope="col">Condição</th><th scope="col">Status</th><th scope="col">Prazo</th></tr></thead>
-     <tbody>{compare.map(x=><tr key={x.id}><td>{x.title}</td><td>{x.modality}</td>
+     <tbody>{compare.map((x:{id:string;title:string;modality:string;status:string;closesOn:string|null})=><tr key={x.id}><td>{x.title}</td><td>{x.modality}</td>
       <td>{x.status}</td><td>{x.closesOn??'Não apurado'}</td></tr>)}</tbody></table>
    </div>
   </section>

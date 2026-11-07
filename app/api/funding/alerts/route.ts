@@ -24,7 +24,7 @@ export async function GET(){
   'FROM funding_observations WHERE municipality_id=$1 '+
   'ORDER BY source,external_code,created_at DESC,id DESC',[actor.municipality_id],actor.id);
  const matches=subscriptions.flatMap(s=>alertsFor(observations.filter(
-  o=>s.modality==='todas'||o.modality===s.modality),s.days_ahead).map(o=>({
+  o=>s.modality==='todas'||o.modality===s.modality),s.days_ahead).map((o:{id:string;title:string;deadline:string})=>({
   ...o,windowDays:s.days_ahead
  })));
  const dedup=new Map(matches.map(m=>[m.id,m]));

@@ -78,7 +78,7 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
    <p><strong>{documents.length} documentos</strong> · {dossier.pending.length} sem versão apresentada
      · Dossiê documental {dossier.ready?'com itens registrados':'incompleto ou sem modelo'}</p>
    <Link href={'/projetos/'+record.project_id+'/documentos'}>Ver checklist e anexos versionados</Link>
-   {dossier.pending.slice(0,20).map((n,i)=><p key={i}>Pendente: {n}</p>)}
+   {dossier.pending.slice(0,20).map((n:string,i:number)=><p key={i}>Pendente: {n}</p>)}
   </section>
   <section className="panel">
    <h2>AF-058 · Simulação financeira hipotética</h2>
