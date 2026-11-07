@@ -300,3 +300,24 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - **Validação.** Os testes cobrem reconciliação em centavos, limites da
   simulação, acesso à página e isolamento entre municípios. A homologação
   operacional segue na issue #13.
+
+## Décimo oitavo incremento — AF-028: base normativa versionada
+
+- Cadastro manual de referências jurídicas por município, código, título,
+  jurisdição (federal/estadual/municipal) e UF pertinente.
+- Histórico append-only por referência: URL da fonte, publicação informada,
+  vigência inicial/final informada, artigo, trecho e justificativa; versão
+  vinculada a identificador imutável e impressão SHA-256 dos metadados.
+- Somente administrador municipal ativo pode incluir referência ou versão.
+  Analistas visualizam históricos completos; outras prefeituras não os veem.
+- Controle otimista de concorrência por `expectedVersion`: revisão atrasada
+  recebe conflito 409, não sobrescreve dados históricos.
+- `/normativos` para consulta/registro e `/normativos/[id]` para
+  identificação e recuperação exata de cada versão.
+- Nova migração `021_normative_sources.sql`, FORCE RLS, chaves compostas,
+  índices por município e grant somente `SELECT,INSERT` para a role web.
+- Validações de URL HTTPS pública, calendário civil, datas e caracteres;
+  nunca executa fetch da URL informada.
+- `ENABLE_NORMATIVE_REGISTRY=no` por padrão, habilitada somente no CI
+  descartável. Referências **não são autenticações oficiais nem pareceres**.
+- Manual: `docs/BASE_NORMATIVA_AF028.md`.
