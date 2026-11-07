@@ -140,9 +140,10 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    assert.equal((await get('/api/funding/alerts',adminB)).status,200);
   });
   await t.test('AF-051..053: referência BNDES e CAPAG nunca afirma edital aberto',async()=>{
-   const capag=await post('/api/funding/sources',{source:'tesouro_capag'},adminA);
-   assert.equal(capag.status,200);
-   assert.equal(capag.data.requiresHumanReview,true);
+   // CAPAG CKAN real must never be contacted by the disposable offline CI suite.
+   // Its fixed-origin parser and fetch adapter have mocked unit tests.
+   const blocked=await post('/api/funding/sources',{source:'tesouro_capag'},analystA);
+   assert.equal(blocked.status,403);
    const bndes=await post('/api/funding/sources',{source:'bndes'},adminA);
    assert.equal(bndes.status,200);assert.ok(bndes.data.observed>=30);
    assert.equal(bndes.data.scope,'referencias_sem_confirmacao_de_oferta');
