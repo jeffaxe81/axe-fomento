@@ -4,6 +4,7 @@ import {getSession} from '@/lib/auth';
 import {query,queryForMunicipality} from '@/lib/db';
 import {rejectUntrustedWrite} from '@/lib/security';
 import {fetchOfficialPrograms} from '@/lib/source-ingestion';
+import {fetchCapagCatalog} from '@/lib/capag-publications.mjs';
 import {fingerprint} from '@/lib/funding-pipeline.mjs';
 export const runtime='nodejs';
 const schema=z.object({source:z.enum(['transferegov','bndes','tesouro_capag'])}).strict();
@@ -36,11 +37,17 @@ export async function POST(request:Request){
    modality:'credito',observationKind:'linha_referenciada',
    evidenceNote:'Referência editorial de catálogo; condições e disponibilidade devem ser conferidas no BNDES.'}));
  }else{
-  batch=[{source,externalCode:'capag-municipios-dados-abertos',
-   title:'Publicações oficiais CAPAG dos municípios',
-   sourceUrl:'https://www.tesourotransparente.gov.br/temas/estados-e-municipios/capacidade-de-pagamento-capag',
-   modality:'credito',observationKind:'capag_publicacao',
-   evidenceNote:'Página do conjunto de dados: consultar ano-base, publicação e classificação do município diretamente no Tesouro.'}];
+  let resources;
+  try{resources=await fetchCapagCatalog();}
+  catch{return NextResponse.json({error:'Falha na consulta de metadados oficiais CAPAG'}, {status:502});}
+  batch=resources.slice(0,20).map(r=>({source,
+   externalCode:r.resourceId||'capag-'+String(r.publishedForYear),
+   title:r.name,sourceUrl:r.url,modality:'credito',
+   observationKind:'capag_publicacao',
+   evidenceNote:'Arquivo público do Tesouro. Ano da publicação '+(r.publishedForYear??'não apurado')+
+    ', data indicada '+(r.publicationDate??'não informada')+
+    '. Não é classificação individual nem autorização para financiamento.'}));
+
  }
  let added=0;
  for(const item of batch){
