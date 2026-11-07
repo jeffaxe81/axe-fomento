@@ -49,7 +49,7 @@ export async function POST(request:Request){
  if(payload.length>5000)return NextResponse.json({error:'Detalhamento excede limite'},{status:400});
  const fp=fingerprint([x.caseId,x.expectedRevision+1,x.eventKind,x.note,x.evidenceUrl,x.eventDate,money,x.content]);
  const sql=`
- WITH mutex AS MATERIALIZED(SELECT pg_advisory_xact_lock(hashtext($2::text)) AS acquired),
+ WITH mutex AS MATERIALIZED(SELECT pg_advisory_xact_lock(hashtext($2::uuid::text)) AS acquired),
  permitted AS MATERIALIZED(
   SELECT c.id FROM funding_cases c JOIN projects p ON p.id=c.project_id AND p.municipality_id=$1
   WHERE c.id=$2 AND c.municipality_id=$1 AND
