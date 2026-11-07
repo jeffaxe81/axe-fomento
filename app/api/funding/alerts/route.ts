@@ -23,8 +23,12 @@ export async function GET(){
   'observation_kind,reference_status,checked_on::text AS checked_on,modality '+
   'FROM funding_observations WHERE municipality_id=$1 '+
   'ORDER BY source,external_code,created_at DESC,id DESC',[actor.municipality_id],actor.id);
+ const [municipality]=await queryForMunicipality<{population:number|null;priority_areas:string[]}>(
+  actor.municipality_id,'SELECT population,priority_areas FROM municipalities WHERE id=$1',
+  [actor.municipality_id],actor.id);
  const matches=subscriptions.flatMap(s=>alertsFor(observations.filter(
-  o=>s.modality==='todas'||o.modality===s.modality),s.days_ahead).map((o:{id:string;title:string;deadline:string})=>({
+  o=>s.modality==='todas'||o.modality===s.modality),s.days_ahead,
+   new Date().toISOString().slice(0,10),municipality).map((o:{id:string;title:string;deadline:string})=>({
   ...o,windowDays:s.days_ahead
  })));
  const dedup=new Map(matches.map(m=>[m.id,m]));

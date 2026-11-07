@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validOfficialUrl,parseMoneyCents,validDate,classifyObservation,compareOffers,
  simulateFinancing,initialEligibility,checkDossier,handoffFor,alertsFor,operationalOutcomes,
- EVENT_TYPES,MODALITIES,fingerprint,offerDocumentGaps,fundingEligibilityForCase} from '../lib/funding-pipeline.mjs';
+ EVENT_TYPES,MODALITIES,fingerprint,offerDocumentGaps,fundingEligibilityForCase,municipalityOfferCompatibility} from '../lib/funding-pipeline.mjs';
 const observed={id:'1',title:'Obra municipal',source:'bndes',source_url:'https://cidades.bndes.gov.br/',
  modality:'credito',observation_kind:'oportunidade_conferida',reference_status:'conferida_por_operador',
  checked_on:'2026-11-07',opens_on:'2026-11-01',closes_on:'2026-11-20',terms:{}};
@@ -71,4 +71,12 @@ test('AF-056/059: lista documental por linha evidencia faltas e nunca aprova fin
  assert.equal(report.decision,'analise_humana_obrigatoria');
  assert.ok(report.signals.some(s=>s.code==='garantia'));
  assert.ok(report.signals.some(s=>s.state==='possivel_impedimento'));
+});
+
+test('AF-055 não recomenda linhas com porte populacional declarado incompatível',()=>{
+ const line={...observed,terms:{minimumPopulation:30000,thematicAreas:['saude']}};
+ assert.equal(municipalityOfferCompatibility(line,{population:5000,priority_areas:['saude']}).status,
+  'possivel_impedimento');
+ assert.equal(alertsFor([line],30,'2026-11-07',{population:5000,priority_areas:['saude']}).length,0);
+ assert.equal(alertsFor([line],30,'2026-11-07',{population:50000,priority_areas:['saude']}).length,1);
 });

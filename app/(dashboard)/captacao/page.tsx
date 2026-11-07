@@ -16,7 +16,7 @@ const money=(cents:string)=>new Intl.NumberFormat('pt-BR',{style:'currency',curr
  .format(Number(cents)/100);
 export default async function MunicipalFunding({searchParams}:{searchParams:Promise<{comparar?:string|string[]}>}){
  const actor=await requireSession();const enabled=process.env.ENABLE_FUNDING_PIPELINE==='yes';
- const [offers,cases,projects,events,subscriptions]=await Promise.all([
+ const [offers,cases,projects,events,subscriptions,[municipality]]=await Promise.all([
   queryForMunicipality<Offer>(actor.municipality_id,
    'SELECT DISTINCT ON (source,external_code) id,source,external_code,title,source_url,modality,'+
    'observation_kind,reference_status,opens_on::text AS opens_on,closes_on::text AS closes_on,'+
@@ -39,11 +39,14 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
   queryForMunicipality<Alert>(actor.municipality_id,
    'SELECT modality,days_ahead FROM funding_alert_subscriptions '+
    'WHERE municipality_id=$1 AND user_id=$2 AND is_active=true',
-   [actor.municipality_id,actor.id],actor.id)
+   [actor.municipality_id,actor.id],actor.id),
+  queryForMunicipality<{population:number|null;priority_areas:string[]}>(
+   actor.municipality_id,'SELECT population,priority_areas FROM municipalities WHERE id=$1',
+   [actor.municipality_id],actor.id)
  ]);
  const summary=operationalOutcomes(cases,events);
  const alerts=subscriptions.flatMap(s=>alertsFor(offers.filter(o=>
-  s.modality==='todas'||s.modality===o.modality),s.days_ahead));
+  s.modality==='todas'||s.modality===o.modality),s.days_ahead,new Date().toISOString().slice(0,10),municipality));
  const uniqueAlerts=[...new Map(alerts.map(a=>[a.id,a])).values()];
  const search=await searchParams;
  const chosen=(Array.isArray(search.comparar)?search.comparar:[search.comparar]).filter(

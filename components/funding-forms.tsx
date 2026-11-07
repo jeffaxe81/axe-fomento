@@ -54,7 +54,9 @@ export function FundingObservationForm({enabled}:FundingFormProps){
     opensOn:str('opensOn')||null,closesOn:str('closesOn')||null,
     checkedOn:str('checkedOn')||null,evidenceNote:str('evidenceNote'),
     terms:{...(str('annualRateBps')?{annualRateBps:Number(str('annualRateBps'))}:{}),
-     ...(str('termMonths')?{termMonths:Number(str('termMonths'))}:{})}};
+     ...(str('termMonths')?{termMonths:Number(str('termMonths'))}:{}),
+     ...(str('minimumPopulation')?{minimumPopulation:Number(str('minimumPopulation'))}:{}),
+     ...(str('thematicAreas')?{thematicAreas:str('thematicAreas').split(',').map(s=>s.trim()).filter(Boolean)}:{})}};
    const r=await fetch('/api/funding/observations',{method:'POST',
     headers:{'content-type':'application/json'},body:JSON.stringify(body)});
    const result=await r.json();if(!r.ok)throw Error(errorFrom(result));
@@ -99,6 +101,9 @@ export function FundingObservationForm({enabled}:FundingFormProps){
   <label>Data da conferência humana <input name="checkedOn" type="date"/></label>
   <label>Taxa anual informada (pontos base, 100 = 1%) <input name="annualRateBps" type="number" min={0} max={10000}/></label>
   <label>Prazo informado em meses <input name="termMonths" type="number" min={1} max={600}/></label>
+  <label>População mínima informada <input name="minimumPopulation" type="number" min={0}/></label>
+  <label>Áreas temáticas separadas por vírgula <input name="thematicAreas" maxLength={300}
+   placeholder="saneamento, saude"/></label>
   <label>Justificativa / evidência <textarea name="evidenceNote" minLength={15} maxLength={1500} required
    placeholder="Fonte e item do edital/linha que fundamentam a conferência"/></label>
   <button className="btn btn-primary" type="submit" disabled={!enabled||busy}>

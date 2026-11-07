@@ -9,6 +9,8 @@ const termsSchema=z.object({
  annualRateBps:z.number().int().min(0).max(10000).nullable().optional(),
  termMonths:z.number().int().min(1).max(600).nullable().optional(),
  minimumPopulation:z.number().int().min(0).max(100000000).nullable().optional(),
+ maximumPopulation:z.number().int().min(0).max(100000000).nullable().optional(),
+ thematicAreas:z.array(z.string().trim().min(3).max(50)).max(12).optional(),
  requiresGuarantee:z.boolean().nullable().optional(),
  documentation:z.array(z.string().trim().min(3).max(150)).max(25).optional()
 }).strict();
