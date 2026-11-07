@@ -66,6 +66,12 @@ try {
   await db.query('GRANT SELECT,INSERT ON public.consortium_project_shares TO fomento_app');
   await db.query('GRANT UPDATE(enabled,revision,updated_by,updated_at) ON public.consortium_project_shares TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.consortium_share_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_readiness_ideas TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.municipal_readiness_rubrics TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_readiness_evidence TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.project_readiness_assessments TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.readiness_action_assignment_events TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.readiness_review_events TO fomento_app');
   await db.query('GRANT EXECUTE ON FUNCTION public.consortium_municipality_directory(uuid,uuid) TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.opportunity_requirements TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.project_requirement_assessments TO fomento_app');
