@@ -1,0 +1,57 @@
+{
+  "target": null,
+  "commit_sha": null,
+  "accepted_by": null,
+  "accepted_at": null,
+  "note": "Modelo inicial. Não copie dados pessoais ou segredos; preenchimento não aprova a produção.",
+  "gates": {
+    "OP-01": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-02": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-03": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-04": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-05": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-06": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-07": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    },
+    "OP-08": {
+      "status": "PENDING",
+      "evidence": null,
+      "approver": null,
+      "approved_at": null
+    }
+  }
+}
