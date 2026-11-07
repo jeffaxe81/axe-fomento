@@ -454,3 +454,33 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - Por padrão `ENABLE_PROPOSAL_CONTENT_REVIEWS=no` até homologação.
 - Manual: `docs/REVISAO_CONTEUDO_AF033.md`.
 - Coordenação de cinco frentes: `docs/AF033_CINCO_FRENTES.md`.
+
+## Vigésimo quinto incremento — AF-034: diretório de financiadores nacionais
+
+- Cadastro manual das **referências de instituições nacionais** por cada
+  prefeitura (catálogo próprio do município), com código, instituição,
+  natureza, **modalidades** e **áreas temáticas** controladas.
+- Exibe página HTTPS de referência, seção, nota documental e data da
+  **consulta humana declarada**, quando existir, com situação:
+  `referencia_informada`, `consultada_internamente` ou
+  `revisao_necessaria`.
+- **Não é uma lista de editais abertos, linha com recursos disponíveis,
+  cotação, taxa, aprovação jurídica ou evidência de crédito concedido.**
+  Nenhuma instituição ou produto foi inventado ou importado de fonte
+  externa automaticamente; a equipe precisa conferir cada fonte.
+- Página `/financiadores` com busca literal por nome/código,
+  filtros por modalidade e tema, paginação de 25 após consulta integral;
+  detalhe `/financiadores/[id]` com histórico.
+- APIs `POST /api/financiers` e `POST /api/financiers/versions`:
+  somente administrador municipal ativo, validação de URL pública
+  HTTPS, datas não futuras, tags controladas, CSRF e parâmetros SQL.
+  Nova conferência exige `expectedVersion` (409 em concorrência).
+- Migração `027_financier_directory.sql`: `municipal_financiers`,
+  `municipal_financier_versions`, versões imutáveis, SHA-256 de
+  metadados **declarados**, FORCE RLS, FKs municipais, role `SELECT/INSERT`.
+- `ENABLE_FINANCIER_DIRECTORY=no` por padrão até homologação.
+- Testes unitários e PostgreSQL/HTTP: cadastros de duas prefeituras,
+  filtros, paginação, histórico, situação de conferência, CSRF, RBAC,
+  conflito, restrição de UPDATE/DELETE e 10.000 cenários no CI.
+- Manual `docs/DIRETORIO_FINANCIADORES_AF034.md`; revisão técnica
+  organizada em seis frentes `docs/AF034_SEIS_FRENTES.md`.

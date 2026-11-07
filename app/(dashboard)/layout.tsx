@@ -19,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/revisoes">☑ <span>Revisões internas</span></Link>
         <Link href="/documentos/validade">▣ <span>Validade documental</span></Link>
         <Link href="/normativos">▧ <span>Base normativa</span></Link>
+        <Link href="/financiadores">▥ <span>Financiadores nacionais</span></Link>
         {user.role === 'admin' && <Link href="/fontes">⊞ <span>Fontes oficiais</span></Link>}
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
         <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>
