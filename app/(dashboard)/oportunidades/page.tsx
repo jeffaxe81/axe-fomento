@@ -41,6 +41,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
         <p>Consulte iniciativas de financiamento e compare a aderência ao perfil municipal.</p>
       </div>
       <div className="radar-actions">
+        <Link className="btn btn-outline" href="/oportunidades/semantica">Busca por intenção</Link>
         <Link className="btn btn-outline" href="/oportunidades/agenda">Agenda de prazos</Link>
         <Link className="btn btn-outline" href="/oportunidades/favoritos">Meus favoritos</Link>
         <Link className="btn btn-outline" href="/">← Voltar ao painel</Link>

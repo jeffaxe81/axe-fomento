@@ -13,6 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <nav aria-label="Navegação principal" className="nav">
         <Link href="/">▦ <span>Visão geral</span></Link>
         <Link href="/oportunidades">◈ <span>Radar de oportunidades</span></Link>
+        <Link href="/oportunidades/semantica">⌕ <span>Busca por intenção</span></Link>
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
         <Link href="/tarefas">☷ <span>Minhas tarefas</span></Link>
         <Link href="/revisoes">☑ <span>Revisões internas</span></Link>

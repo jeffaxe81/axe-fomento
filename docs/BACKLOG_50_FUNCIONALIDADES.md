@@ -369,3 +369,29 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - Testes unitários, duas prefeituras e casos adversariais HTTP/RLS
   executados junto à bateria de 10.000 cenários no CI.
 - Manual: `docs/EXTRACAO_ASSISTIDA_AF030.md`.
+
+## Vigésimo segundo incremento — AF-031: busca por intenção no catálogo
+
+- Busca textual orientada a objetivos, em português, com expansão
+  temática explícita e PostgreSQL Full Text Search (`portuguese`).
+- Oferece relevância explicável baseada em título, área e órgão, sem
+  modelo generativo, embeddings ou serviço externo; pagina **depois**
+  de consultar e ordenar todo o catálogo, não somente os itens recentes.
+- Duas categorias separadas: oportunidades públicas cadastradas no
+  radar; e programas da API Transferegov já **revisados pela prefeitura**
+  (`review_state='approved'`), filtrados por município via FORCE RLS.
+  Programas pendentes/rejeitados nunca aparecem nas consultas.
+- Exibe fonte indicada e data real disponível. Oportunidades sem
+  observação oficial mostram **data da consulta não disponível**, sem
+  sugerir comprovação de edital aberto. Programas mostram
+  `last_seen_at`, a observação registrada no AF-009.
+- Página `/oportunidades/semantica`, API autenticada
+  `GET /api/opportunities/semantic`, navegação no radar e sidebar.
+- Migração `024_semantic_catalog_search.sql` cria índices GIN em
+  texto português e índice municipal de fontes aprovadas.
+- `ENABLE_SEMANTIC_CATALOG=no` até homologação operacional.
+- Testes unitários de intenções/limites e integração com PostgreSQL,
+  paginação, fonte curada, não exposição cross-tenant e segurança da API.
+  Suíte determinística adicional de 10.000 casos mantida no CI.
+- Manual: `docs/BUSCA_SEMANTICA_AF031.md`.
+- Revisão coordenada: `docs/AF031_DEZ_FRENTES.md`.
