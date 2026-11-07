@@ -103,9 +103,9 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
    </form>
    <div className="table-scroll" tabIndex={0} role="region" aria-label="Comparativo de fontes">
     <table><thead><tr><th scope="col">Fonte</th><th scope="col">Condição</th><th scope="col">Status</th><th scope="col">Prazo</th><th scope="col">Taxa informada</th><th scope="col">Prazo de crédito</th></tr></thead>
-     <tbody>{compare.map((x:{id:string;title:string;modality:string;status:string;closesOn:string|null})=><tr key={x.id}><td>{x.title}</td><td>{x.modality}</td>
+     <tbody>{compare.map((x:{id:string;title:string;modality:string;status:string;closesOn:string|null;annualRateBps:number|null;termMonths:number|null})=><tr key={x.id}><td>{x.title}</td><td>{x.modality}</td>
       <td>{x.status}</td><td>{x.closesOn??'Não apurado'}</td>
-      <td>{x.annualRate??'Não apurada'}</td><td>{x.termMonths??'Não apurado'}</td></tr>)}</tbody></table>
+      <td>{x.annualRateBps!=null?(x.annualRateBps/100).toFixed(2)+'% a.a.':'Não apurada'}</td><td>{x.termMonths??'Não apurado'}</td></tr>)}</tbody></table>
    </div>
   </section>
   <section className="panel">
