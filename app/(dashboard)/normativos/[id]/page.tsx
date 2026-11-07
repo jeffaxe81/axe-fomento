@@ -51,7 +51,7 @@ export default async function NormativeHistory({params}:{params:Promise<{id:stri
   </section>
   <section className="panel">
    <h2>Versões e evidências ({versions.length})</h2>
-   {versions.map(v=><article key={v.id} className="review-event">
+   {versions.map(v=><article key={v.id} className="review-event" data-version={v.version}>
     <span className="chip">Versão {v.version} · {normativeVersionLabel(v.valid_from,v.valid_until)}</span>
     <p><strong>Publicação:</strong> {fmt(v.published_on)}</p>
     <p><strong>Vigência informada:</strong> {fmt(v.valid_from)} —

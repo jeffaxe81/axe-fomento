@@ -118,9 +118,9 @@ test('AF-028: origem, jurisdição, versões históricas, tenant e controle de c
    assert.notEqual(persisted[0].snapshot_sha256,persisted[1].snapshot_sha256);
    const detail=await page('/normativos/'+sourceId,analystA);
    assert.equal(detail.status,200);
-   assert.ok(detail.html.includes('Versão 1'));
-   assert.ok(detail.html.includes('Versão 2'));
-   assert.ok(detail.html.includes('Versão 3'));
+   assert.ok(detail.html.includes('data-version="1"'));
+   assert.ok(detail.html.includes('data-version="2"'));
+   assert.ok(detail.html.includes('data-version="3"'));
    assert.ok(detail.html.includes(initial.excerpt));
    assert.ok(detail.html.includes(update.excerpt));
   });
