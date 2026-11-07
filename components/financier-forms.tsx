@@ -2,7 +2,7 @@
 import {useRouter} from 'next/navigation';
 import {useState,type FormEvent} from 'react';
 import {CHECK_LABELS,FINANCIER_AREAS,FINANCIER_MODALITIES,FINANCIER_TYPES}
- from '@/lib/financier-directory.mjs';
+ from '@/lib/financier-options.mjs';
 
 type Reference={
  referenceUrl:string;referenceTitle:string;referenceSection:string;
