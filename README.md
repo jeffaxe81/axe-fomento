@@ -63,3 +63,8 @@ O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TES
 
 ## Testes
 `npm test` executa o algoritmo de match; `npm run lint` valida TypeScript. Há testes de integração e segurança no CI. Ainda faltam homologação de instalação, caixa-preta completa e verificação independente.
+
+
+### Escopo de evolução V1.1–V4 (branch de desenvolvimento)
+
+O backlog de 50 funcionalidades está codificado na PR #24, incluindo relatório municipal de conversão e avaliador de pré-viabilidade. O avaliador requer `ENABLE_READINESS_EVALUATOR=yes` **apenas após homologação**, mantém evidências e rubricas versionadas, e exporta relatório PDF interno. Ver `docs/AF041_AF050_ENTREGA_100.md`. A operação pública segue bloqueada pelos portões da issue #13.

@@ -1,0 +1,79 @@
+.simulation :global(.help) {
+ color: #53697a;
+}
+
+.scenario {
+ min-width: 0;
+ margin: 0;
+ padding: 14px;
+ display: grid;
+ gap: 12px;
+ border: 1px solid #b6cdd8;
+ border-radius: 9px;
+ background: #f2f8fb;
+}
+
+.scenarioB {
+ border-color: #b9cfc8;
+ background: #f2f8f5;
+}
+
+.scenario legend {
+ padding: 0 6px;
+ font-size: 14px;
+ font-weight: 700;
+}
+
+.scenario p {
+ margin: 0;
+}
+
+.results {
+ margin-top: 24px;
+}
+
+.results > p {
+ font-size: 13px;
+}
+
+.comparison :is(th, td) {
+ color: var(--ink);
+}
+
+.comparison :is(th, td):nth-child(2) {
+ background: #f2f8fb;
+}
+
+.comparison :is(th, td):nth-child(3) {
+ background: #f2f8f5;
+}
+
+.comparison td {
+ white-space: nowrap;
+ font-variant-numeric: tabular-nums;
+}
+
+.comparison tbody tr:first-child td {
+ font-weight: 700;
+}
+
+.results details {
+ margin-top: 16px;
+}
+
+.results summary {
+ width: fit-content;
+ margin-bottom: 8px;
+ cursor: pointer;
+ font-size: 13px;
+ font-weight: 700;
+}
+
+.announcement {
+ position: absolute;
+ width: 1px;
+ height: 1px;
+ overflow: hidden;
+ clip-path: inset(50%);
+ white-space: nowrap;
+}

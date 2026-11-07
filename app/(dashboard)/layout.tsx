@@ -13,9 +13,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <nav aria-label="Navegação principal" className="nav">
         <Link href="/">▦ <span>Visão geral</span></Link>
         <Link href="/oportunidades">◈ <span>Radar de oportunidades</span></Link>
+        <Link href="/oportunidades/semantica">⌕ <span>Busca por intenção</span></Link>
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
+        <Link href="/tarefas">☷ <span>Minhas tarefas</span></Link>
+        <Link href="/revisoes">☑ <span>Revisões internas</span></Link>
+        <Link href="/documentos/validade">▣ <span>Validade documental</span></Link>
+        <Link href="/normativos">▧ <span>Base normativa</span></Link>
+        <Link href="/financiadores">▥ <span>Financiadores nacionais</span></Link>
+        <Link href="/bndes-cidades">⌑ <span>BNDES Cidades</span></Link>
+        <Link href="/cofiex">▧ <span>COFIEX e PFE</span></Link>
+        <Link href="/cooperacao">◈ <span>Cooperação internacional</span></Link>
+        <Link href="/consorcios">▤ <span>Consórcios municipais</span></Link>
+        <Link href="/relatorios/conversao">▥ <span>Conversão por fonte</span></Link>
+        <Link href="/avaliador">◇ <span>Avaliador de projetos</span></Link>
+        {user.role === 'admin' && <Link href="/fontes">⊞ <span>Fontes oficiais</span></Link>}
         <Link href="/municipio">◉ <span>Perfil municipal</span></Link>
         <Link href="/seguranca">♢ <span>Segurança da conta</span></Link>
+        {user.role === 'admin' && <Link href="/administracao/usuarios">♧ <span>Usuários municipais</span></Link>}
+        {user.role === 'admin' && <Link href="/administracao/secretarias">▥ <span>Secretarias</span></Link>}
       </nav>
       <div className="sidebar-bottom"><div className="municipality-tag"><small>MUNICÍPIO ATIVO</small><strong>{city.name} / {city.uf}</strong></div><div className="version">V1 · MVP de validação</div></div>
     </aside>

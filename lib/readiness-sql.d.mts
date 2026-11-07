@@ -1,0 +1,1 @@
+export declare const CREATE_READINESS_ASSESSMENT_SQL:string;
