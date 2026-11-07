@@ -135,23 +135,6 @@ test('AF-037/038/039/040: fomento internacional e consórcios sem vazamento inte
    assert.equal((await get('/consorcios/'+consortiumId,adminC)).status,404);
    const guest=await get('/consorcios',adminB);
    assert.equal(guest.status,200);
-   const dbMember=(await admin.query(
-    'SELECT id,state,owner_municipality_id,member_municipality_id FROM consortium_memberships WHERE id=$1',
-    [memberId])).rows[0];
-   await app.query('BEGIN');
-   let diagnostic;
-   try{
-    await app.query("SELECT set_config('app.tenant_id',$1,true)",[b]);
-    await app.query("SELECT set_config('app.actor_id',$1,true)",[adminB.id]);
-    const r1=await app.query('SELECT id,state FROM consortium_memberships WHERE id=$1',[memberId]);
-    const r2=await app.query('SELECT id,title FROM municipal_consortia WHERE id=$1',[consortiumId]);
-    diagnostic={memberRows:r1.rows,consortiaRows:r2.rows};
-   }finally{await app.query('ROLLBACK');}
-   console.log('AF039_DIAG',JSON.stringify({dbMember,diagnostic,
-    hasTitle:guest.html.includes('Consórcio de Fomento'),
-    hasAccept:guest.html.includes('Aceitar convite'),
-    hasEmpty:guest.html.includes('Nenhum consórcio ou convite'),
-    status:guest.status}));
    assert.ok(guest.html.includes('Consórcio de Fomento'));
    assert.ok(guest.html.includes('Aceitar convite'));
    assert.equal((await post(paths.membership,{membershipId:memberId,
