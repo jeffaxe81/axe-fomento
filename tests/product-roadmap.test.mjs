@@ -4,8 +4,8 @@ import {CODED_SCOPE,OPERATIONAL_GATES,PRODUCT_VERSIONS,VERSION_SUMMARY,PRODUCT_S
 test('Progresso V1..V4 é uma contagem auditável, distinta do backlog e do GO operacional',()=>{
  assert.equal(PRODUCT_VERSIONS.length,4);
  assert.deepEqual(PRODUCT_VERSIONS.map(v=>VERSION_SUMMARY(v).total),[8,6,5,5]);
- assert.deepEqual(PRODUCT_VERSIONS.map(v=>VERSION_SUMMARY(v).completed),[5,2,1,2]);
- assert.deepEqual(PRODUCT_SUMMARY(),{completed:10,total:24,percent:42});
+ assert.deepEqual(PRODUCT_VERSIONS.map(v=>VERSION_SUMMARY(v).completed),[6,2,1,2]);
+ assert.deepEqual(PRODUCT_SUMMARY(),{completed:11,total:24,percent:46});
  assert.deepEqual(CODED_SCOPE,{implemented:65,total:65});
  assert.deepEqual({approved:OPERATIONAL_GATES.approved,total:OPERATIONAL_GATES.total},{approved:0,total:8});
 });

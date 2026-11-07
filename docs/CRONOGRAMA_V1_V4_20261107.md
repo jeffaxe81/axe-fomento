@@ -3,8 +3,8 @@
 ## Métrica reproduzível
 O painel `/evolucao` usa `lib/product-roadmap.mjs` como fonte versionada. Cada marco
 vale 1 somente quando há funcionalidade ou evidência técnica no Git. **Isso não autoriza produção.**
-A V1 contempla 8 marcos (5 codificados), a V2 6 (2 codificados), a V3 5 (1 codificado),
-a V4 5 (2 codificados): 10/24 (42% arredondados).
+A V1 contempla 8 marcos (6 codificados), a V2 6 (2 codificados), a V3 5 (1 codificado),
+a V4 5 (2 codificados): 11/24 (46% arredondados).
 O backlog de funcionalidades AF-001..065 já foi implementado; o produto ainda tem dependências
 reais e **OP-01..08 = 0/8 comprovados**.
 
@@ -38,3 +38,9 @@ Mudança de API: cache identificado e recuperação sem inventar dados.
 LGPD: armazenamento mínimo e isolamento RLS, expurgo e treinamento de usuário.
 Falha do banco: backup criptografado, ensaio de restauração em infraestrutura-alvo.
 Ausência de acesso API: trilha manual assistida com fonte primária e data, sem falsificar resultado.
+
+## Incremento de evidência individual (V1-06)
+O registro de oportunidade conferida exige identificador do edital, órgão emissor,
+publicação e URL específica em domínio institucional. O estado ainda é **revisão municipal declarada**,
+não verificação remota de edital ativo. Programas e catálogos genéricos são mantidos como referências.
+O aceite operacional V1-07 ainda exige amostras reais, conferência de vigência e enquadramento.

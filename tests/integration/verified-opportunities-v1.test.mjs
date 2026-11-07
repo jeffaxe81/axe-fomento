@@ -28,11 +28,17 @@ test('V1: radar de referências não promove programas a editais, respeita munic
   const r=await db.query(
    'INSERT INTO funding_observations(municipality_id,source,external_code,title,source_url,'+
    'modality,observation_kind,reference_status,opens_on,closes_on,checked_on,'+
-   'evidence_note,fingerprint,created_by) VALUES'+
+   'evidence_note,fingerprint,created_by,terms) VALUES'+
    "($1,'transferegov',$2,$3,'https://api-publica.transferegov.gestao.gov.br/parcerias/programa',"+
    "$4,$5,$6,CURRENT_DATE-1,CURRENT_DATE+$7::int,CURRENT_DATE,"+
-   "'Referência municipal sintética de teste que não comprova edital oficial',repeat('a',64),$8) RETURNING id",
-   [actor.city,external,title,'convenio',kind,status,days,actor.user]);
+   "'Referência municipal sintética de teste que não comprova edital oficial',repeat('a',64),$8,$9::jsonb) RETURNING id",
+   [actor.city,external,title,'convenio',kind,status,days,actor.user,
+    JSON.stringify(kind==='oportunidade_conferida'?{noticeEvidence:{
+     noticeIdentifier:'EDITAL-TESTE-'+external,
+     noticeUrl:'https://www.gov.br/municipio/edital-teste-interno-'+external,
+     issuingAgency:'Secretaria Municipal de Testes',
+     publicationDate:new Date().toISOString().slice(0,10)
+    }}:{})]);
   observations.push(r.rows[0].id);
  }
  async function visit(url,cookie){

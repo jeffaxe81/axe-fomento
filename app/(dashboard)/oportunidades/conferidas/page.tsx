@@ -23,6 +23,7 @@ const statusLabel:Record<string,string>={
  prazo_encerrado:'Prazo informado encerrado',
  inicio_futuro:'Início futuro segundo cadastro',
  referencia_sem_oferta_confirmada:'Referência — não é edital confirmado',
+ evidencia_de_edital_pendente:'Aguardando evidência do edital específico',
  data_invalida:'Data de avaliação inválida'
 };
 const value=(s:string|string[]|undefined)=>typeof s==='string'?s:Array.isArray(s)?s[0]??'':'';

@@ -53,7 +53,11 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
   referenceStatus:'conferida_por_operador',opensOn:'2026-11-01',
   closesOn:'2026-11-30',checkedOn:'2026-11-06',
   evidenceNote:'Hipótese de teste interna, não há confirmação por banco ou operador externo.',
-  terms:{annualRateBps:700,termMonths:120}
+  terms:{annualRateBps:700,termMonths:120,
+   noticeEvidence:{noticeIdentifier:'EDITAL-INTERNO-'+tag,
+    noticeUrl:'https://www.bndes.gov.br/wps/portal/site/home/financiamento/linha-exemplo',
+    issuingAgency:'Banco de Desenvolvimento Exemplo',
+    publicationDate:'2026-11-06'}}
  };
  let a,b,adminA,analystA,adminB,pA,pB,obsId,caseId;
  try{
