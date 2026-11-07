@@ -341,3 +341,31 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - A bateria adicional de 10.000 cenários permanece obrigatória.
 - Flag `ENABLE_MODALITY_MAP=no` até homologação jurídica e operacional.
 - Manual: `docs/MAPA_ENQUADRAMENTO_AF029.md`.
+
+## Vigésimo primeiro incremento — AF-030: sugestão assistida de requisitos de edital
+
+- Tela `/projetos/[id]/extracao-edital` recebe **texto fornecido pela
+  equipe**, vinculado a uma **versão de PDF criptografado** registrada no
+  AF-018, sem buscar conteúdo do PDF automaticamente. Marcadores
+  `PÁGINA N` preservam páginas indicadas pelo operador; na ausência,
+  o trecho original ainda identifica a fonte textual para revisão.
+- Extrator heurístico determinístico encontra até 25 possíveis exigências
+  por lote (palavras de obrigação). **Não usa OCR nem modelo generativo**,
+  não inventa regras, páginas ou evidências e não certifica correspondência
+  entre o texto colado e o PDF anexado.
+- Armazena apenas hash SHA-256 do texto de entrada, tamanho, fragmentos
+  sugeridos, versão de documento, observação, autoria e data; o texto
+  integral fornecido não é guardado no banco.
+- Trechos curtos ou sem evidência suficiente permanecem pendentes,
+  com aprovação interna bloqueada via validação SQL; o revisor pode
+  rejeitar ou registrar pendência documentada.
+- Revisões com decisão e justificativa geram eventos imutáveis, controle
+  otimista por `expectedRevision`, e histórico separado por sugestão.
+  **Aprovação interna não cria requisito automaticamente na matriz AF-013**.
+- Migração `023_edict_suggestions.sql`, FORCE RLS, vínculos compostos
+  por município/projeto/documento, grants `SELECT/INSERT`, APIs POST
+  para geração de lote e revisão humana, flag
+  `ENABLE_EDICT_ASSISTED_EXTRACTION=no` por padrão.
+- Testes unitários, duas prefeituras e casos adversariais HTTP/RLS
+  executados junto à bateria de 10.000 cenários no CI.
+- Manual: `docs/EXTRACAO_ASSISTIDA_AF030.md`.
