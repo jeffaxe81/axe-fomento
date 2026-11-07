@@ -19,8 +19,8 @@ export async function GET(){
   id:string;title:string;closes_on:string|null;opens_on:string|null;
   observation_kind:string;reference_status:string;checked_on:string|null;modality:string
  }>(actor.municipality_id,
-  'SELECT DISTINCT ON (source,external_code) id,title,closes_on,opens_on,'+
-  'observation_kind,reference_status,checked_on,modality '+
+  'SELECT DISTINCT ON (source,external_code) id,title,closes_on::text AS closes_on,opens_on::text AS opens_on,'+
+  'observation_kind,reference_status,checked_on::text AS checked_on,modality '+
   'FROM funding_observations WHERE municipality_id=$1 '+
   'ORDER BY source,external_code,created_at DESC,id DESC',[actor.municipality_id],actor.id);
  const matches=subscriptions.flatMap(s=>alertsFor(observations.filter(

@@ -57,6 +57,7 @@ export async function POST(request:Request){
   [actor.municipality_id,x.source,x.externalCode,x.title,x.sourceUrl,
    x.modality,x.observationKind,x.referenceStatus,x.opensOn,x.closesOn,x.checkedOn,
    JSON.stringify(x.terms),x.evidenceNote,fp,actor.id],actor.id);
+ if(!row)return NextResponse.json({error:'Observação idêntica já registrada'},{status:409});
  return NextResponse.json({id:row.id,scope:'declaracao_municipal_sem_certificacao'},{
   status:201,headers:{'cache-control':'no-store'}});
 }

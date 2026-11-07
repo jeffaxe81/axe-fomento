@@ -20,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <Link href="/documentos/validade">▣ <span>Validade documental</span></Link>
         <Link href="/normativos">▧ <span>Base normativa</span></Link>
         <Link href="/financiadores">▥ <span>Financiadores nacionais</span></Link>
+        <Link href="/captacao">¤ <span>Captação de financiamentos</span></Link>
         <Link href="/bndes-cidades">⌑ <span>BNDES Cidades</span></Link>
         <Link href="/cofiex">▧ <span>COFIEX e PFE</span></Link>
         <Link href="/cooperacao">◈ <span>Cooperação internacional</span></Link>
