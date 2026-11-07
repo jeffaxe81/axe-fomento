@@ -618,3 +618,7 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   com CI integral aprovado**. Homologação
   legal/operacional issue #13 permanece pendente.
 - Manual: `docs/AF037_AF040_ENTREGA_80.md`.
+
+## Incrementos AF-041 a AF-050: cobertura integral do escopo (50/50)
+
+As funcionalidades do avaliador preliminar e do relatório de conversão foram codificadas na branch de desenvolvimento, com migração aditiva 035, novo motor de rubricas e pontuação, fluxos municipais e relatório PDF. O detalhamento, limitações, evidências esperadas e portões de CI estão em [AF041_AF050_ENTREGA_100.md](./AF041_AF050_ENTREGA_100.md). **Cobertura de código não equivale a homologação nem a disponibilidade operacional.**
