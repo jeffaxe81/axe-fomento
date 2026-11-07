@@ -40,7 +40,7 @@ export async function POST(request:Request){
   let resources;
   try{resources=await fetchCapagCatalog();}
   catch{return NextResponse.json({error:'Falha na consulta de metadados oficiais CAPAG'}, {status:502});}
-  batch=resources.slice(0,20).map(r=>({source,
+  batch=resources.slice(0,20).map((r:{resourceId:string;publishedForYear:number|null;publicationDate:string|null;name:string;url:string})=>({source,
    externalCode:r.resourceId||'capag-'+String(r.publishedForYear),
    title:r.name,sourceUrl:r.url,modality:'credito',
    observationKind:'capag_publicacao',
