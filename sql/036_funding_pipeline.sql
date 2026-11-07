@@ -19,6 +19,7 @@ CREATE TABLE public.funding_observations (
  created_by uuid NOT NULL,
  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
  UNIQUE(id,municipality_id),
+ UNIQUE(municipality_id,source,external_code,fingerprint),
  FOREIGN KEY(created_by,municipality_id) REFERENCES public.users(id,municipality_id),
  CHECK(closes_on IS NULL OR opens_on IS NULL OR closes_on>=opens_on),
  CHECK(observation_kind <> 'oportunidade_conferida' OR

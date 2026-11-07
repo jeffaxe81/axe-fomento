@@ -41,7 +41,7 @@ test('Banco legado sem ledger falha fechado; baseline revisado habilita upgrade 
     await check.connect();
     try{
       const count=(await check.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n;
-      assert.equal(count,35);
+      assert.equal(count,36);
       assert.equal((await check.query(
         "SELECT to_regprocedure('public.auth_change_password(uuid,uuid,text,text)') IS NOT NULL AS ok"
       )).rows[0].ok,true);
