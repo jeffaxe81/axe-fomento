@@ -61,7 +61,8 @@ export async function POST(request:Request){
  INSERT INTO funding_case_events(municipality_id,case_id,created_by,revision,
   event_kind,note,evidence_url,event_date,value_cents,content,fingerprint)
  SELECT $1,c.id,$3,latest.revision+1,$5,$6,$7,$8,$9,$10::jsonb,$11
- FROM permitted c CROSS JOIN latest WHERE latest.revision=$4 RETURNING id,revision`;
+ FROM permitted c CROSS JOIN latest WHERE latest.revision=$4
+ ON CONFLICT (case_id,revision) DO NOTHING RETURNING id,revision`;
  const [row]=await queryForMunicipality<{id:string;revision:number}>(actor.municipality_id,sql,
   [actor.municipality_id,x.caseId,actor.id,x.expectedRevision,x.eventKind,x.note,
    x.evidenceUrl,x.eventDate,money,payload,fp],actor.id);
