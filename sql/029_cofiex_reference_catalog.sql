@@ -1,7 +1,7 @@
 -- AF-036: publicly identified official COFIEX/PFE documentation, NOT active financing offers.
 -- Eight official references and twelve orientation/checklist stages are immutable to the web role.
 CREATE TABLE public.cofiex_official_references(
- code text PRIMARY KEY CHECK(code ~ '^[a-z0-9_]{5,50}),
+ code text PRIMARY KEY CHECK(code ~ '^[a-z0-9_]{5,50}$'),
  title text NOT NULL CHECK(length(btrim(title)) BETWEEN 10 AND 200),
  category text NOT NULL CHECK(category IN('institucional','portal','normativo','calendario','orientacao')),
  source_url text NOT NULL UNIQUE CHECK(
@@ -23,10 +23,10 @@ INSERT INTO public.cofiex_official_references(
 CREATE TABLE public.cofiex_consultation_stages(
  code text PRIMARY KEY CHECK(code ~ '^[a-z_]{5,50}$'),
  stage_number smallint NOT NULL UNIQUE CHECK(stage_number BETWEEN 1 AND 50),
- UNIQUE(code,reference_code),
  title text NOT NULL CHECK(length(btrim(title)) BETWEEN 10 AND 200),
  reference_code text NOT NULL REFERENCES public.cofiex_official_references(code) ON DELETE RESTRICT,
- description text NOT NULL CHECK(length(btrim(description)) BETWEEN 20 AND 400)
+ description text NOT NULL CHECK(length(btrim(description)) BETWEEN 20 AND 400),
+ UNIQUE(code,reference_code)
 );
 INSERT INTO public.cofiex_consultation_stages(stage_number,code,title,reference_code,description) VALUES
 (1,'identificar_escopo','Verificar escopo e objetivo do financiamento externo','visao_cofiex','Conferir finalidade da COFIEX, tipo de financiamento e enquadramento geral'),
