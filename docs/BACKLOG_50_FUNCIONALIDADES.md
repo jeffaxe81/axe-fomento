@@ -395,3 +395,30 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
   Suíte determinística adicional de 10.000 casos mantida no CI.
 - Manual: `docs/BUSCA_SEMANTICA_AF031.md`.
 - Revisão coordenada: `docs/AF031_DEZ_FRENTES.md`.
+
+## Vigésimo terceiro incremento — AF-032: rascunho assistido de proposta
+
+- Página `/projetos/[id]/proposta` com seis seções de proposta: contexto,
+  justificativa, objetivos, execução, orçamento e requisitos.
+- O texto inicial é gerado **deterministicamente** a partir de dados
+  declarados do município, projeto, oportunidade, etapas/custos do AF-025,
+  matriz AF-013/014 e sugestões do AF-030 com última avaliação
+  interna `aprovada`. Não utiliza LLM, OCR ou APIs externas.
+- Lacunas de informação aparecem como `[PREENCHER E VALIDAR PELA EQUIPE
+  MUNICIPAL]`; lista de pendências é preservada no snapshot das fontes,
+  incluindo público beneficiário, metas, orçamento, exigências e edital.
+- Titular ou administrador municipal pode editar e salvar novas versões
+  completas. Edições não substituem versões antigas nem a origem do
+  conteúdo; colisões retornam HTTP 409 por `expectedVersion`.
+- A versão gerada é um **rascunho interno**, não declaração de
+  regularidade, habilitação, autenticidade jurídica ou protocolo.
+- Migração `025_proposal_drafts.sql` implementa tabelas append-only
+  `project_proposal_drafts` e `project_proposal_versions`, FORCE RLS,
+  FKs por município, privilégio mínimo `SELECT/INSERT` e limites de seção.
+- APIs POST `/api/projects/proposals` (geração inicial) e
+  `/api/projects/proposals/revisions` (edição auditável).
+- Testes unitários, integração em duas prefeituras, CSRF, concorrência,
+  imutabilidade e limites de texto. A suíte determinística de
+  10.000 casos permanece obrigatória no CI.
+- `ENABLE_PROPOSAL_DRAFTS=no` por padrão até homologação.
+- Manual: `docs/RASCUNHO_PROPOSTA_AF032.md`.
