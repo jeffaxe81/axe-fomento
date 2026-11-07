@@ -43,7 +43,7 @@ export async function POST(request:Request){
   evidence_count:number;prior_revision:number|null;id:string|null;saved_revision:number|null
  }>(actor.municipality_id,CREATE_READINESS_ASSESSMENT_SQL,[
   actor.municipality_id,d.caseId,actor.id,d.rubricId,
-  JSON.stringify(evaluation.breakdown.map(x=>({id:x.id,score:x.score,evidence:x.evidence}))),
+  JSON.stringify(evaluation.breakdown.map((x:{id:string;score:number|null;evidence:string|null})=>({id:x.id,score:x.score,evidence:x.evidence}))),
   JSON.stringify(evaluation.blockers),JSON.stringify(evaluation.actions),
   evaluation.score,evaluation.maximumPossibleScore,evaluation.evaluatedWeight,
   d.revisionNote,d.expectedRevision
