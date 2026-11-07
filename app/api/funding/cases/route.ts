@@ -30,6 +30,8 @@ export async function POST(request:Request){
   "o.observation_kind='oportunidade_conferida' AND "+
   "o.reference_status='conferida_por_operador' AND "+
   "o.checked_on BETWEEN CURRENT_DATE - INTERVAL '30 days' AND CURRENT_DATE AND "+
+  "o.terms ? 'noticeEvidence' AND "+
+  "o.closes_on >= CURRENT_DATE AND "+
   "(o.closes_on IS NULL OR o.closes_on>=CURRENT_DATE) AND "+
   '(p.owner_user_id=$4 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$4 AND u.role=\'admin\' AND u.active)) '+
   'ON CONFLICT (municipality_id,project_id,observation_id) DO NOTHING RETURNING id',
