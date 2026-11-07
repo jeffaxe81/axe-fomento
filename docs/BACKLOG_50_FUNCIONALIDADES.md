@@ -321,3 +321,23 @@ Um dia-pessoa (DP) corresponde a um dia de trabalho de uma pessoa. As faixas inc
 - `ENABLE_NORMATIVE_REGISTRY=no` por padrão, habilitada somente no CI
   descartável. Referências **não são autenticações oficiais nem pareceres**.
 - Manual: `docs/BASE_NORMATIVA_AF028.md`.
+
+## Décimo nono incremento — AF-029: enquadramento por modalidade
+
+- Página `/projetos/[id]/enquadramento` com modalidades do AF-017,
+  resumo de pendências e critérios documentados por pessoas autorizadas.
+- Cada critério aponta para o **ID da versão normativa exata** registrada
+  no AF-028, preservando fonte, número da versão, trecho e SHA-256 da
+  declaração consultada.
+- Revisão humana por titular do projeto ou administrador municipal
+  com status declarado, evidência/justificativa e controle otimista
+  de concorrência (`expectedRevision`).
+- Histórico de avaliações em
+  `/projetos/[id]/enquadramento/[checkId]`, sem UPDATE/DELETE pela role web.
+- Integração de navegação à matriz de requisitos AF-013/014, sem
+  inferência automática de elegibilidade por critérios cadastrados.
+- Migração `022_project_modality_map.sql`, APIs POST de cadastro/revisão,
+  política FORCE RLS, testes intermunicipais e segurança HTTP no CI.
+- A bateria adicional de 10.000 cenários permanece obrigatória.
+- Flag `ENABLE_MODALITY_MAP=no` até homologação jurídica e operacional.
+- Manual: `docs/MAPA_ENQUADRAMENTO_AF029.md`.
