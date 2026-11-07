@@ -52,8 +52,7 @@ export async function POST(request:Request){
   'INSERT INTO funding_observations(municipality_id,source,external_code,title,source_url,'+
   'modality,observation_kind,reference_status,opens_on,closes_on,checked_on,terms,evidence_note,fingerprint,created_by) '+
   'VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15) '+
-  'ON CONFLICT (municipality_id,source,external_code,fingerprint) DO UPDATE SET '+
-  'fingerprint=EXCLUDED.fingerprint RETURNING id',
+  'ON CONFLICT (municipality_id,source,external_code,fingerprint) DO NOTHING RETURNING id',
   [actor.municipality_id,x.source,x.externalCode,x.title,x.sourceUrl,
    x.modality,x.observationKind,x.referenceStatus,x.opensOn,x.closesOn,x.checkedOn,
    JSON.stringify(x.terms),x.evidenceNote,fp,actor.id],actor.id);
