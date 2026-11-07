@@ -64,8 +64,10 @@ test('V1: radar de referências não promove programas a editais, respeita munic
    const overview=await visit('/',a.cookie),progress=await visit('/evolucao',a.cookie);
    assert.equal(overview.status,200);assert.equal(progress.status,200);
    assert.ok(overview.body.includes('Evolução do AXE Fomento'));
-   for(const version of ['V1','V2','V3','V4'])
-    assert.ok(progress.body.includes(version+' —'),version);
+   for(const title of ['Radar de oportunidades verificáveis',
+    'Inteligência jurídica e preparação com IA','Rede nacional e internacional de fomento',
+    'Avaliador inteligente e calibrado'])
+    assert.ok(progress.body.includes(title),title);
    assert.ok(progress.body.includes('Marcos de produto concluídos'));
    assert.ok(progress.body.includes('Homologação operacional:'));
   });
