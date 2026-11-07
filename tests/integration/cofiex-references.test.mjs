@@ -96,7 +96,7 @@ test('AF-036: referências reais, etapas COFIEX, consulta humana e proteção mu
    const list=await page('/projetos/'+projectA+'/cofiex',owner);
    assert.equal(list.status,200);
    assert.equal((list.html.match(/data-cofiex-stage="/g)||[]).length,12);
-   assert.ok(list.html.includes('12 etapas'));
+   assert.ok(list.html.includes('etapas com registro'));
    assert.ok(list.html.includes('sem consulta')||list.html.includes('Sem consulta'));
    assert.equal((await page('/projetos/'+projectA+'/cofiex',foreign)).status,404);
    assert.equal((await page('/projetos/'+projectA+'/cofiex/'+stage,foreign)).status,404);
@@ -203,7 +203,7 @@ test('AF-036: referências reais, etapas COFIEX, consulta humana e proteção mu
    }finally{await app.query('ROLLBACK');}
    const foreignProject=await page('/projetos/'+projectB+'/cofiex',foreign);
    assert.equal(foreignProject.status,200);
-   assert.ok(foreignProject.html.includes('12 etapas'));
+   assert.ok(foreignProject.html.includes('etapas com registro'));
    assert.ok(!foreignProject.html.includes('Consulta institucional conferida pelo administrador'));
   });
  }finally{
