@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validOfficialUrl,parseMoneyCents,validDate,classifyObservation,compareOffers,
  simulateFinancing,initialEligibility,checkDossier,handoffFor,alertsFor,operationalOutcomes,
- EVENT_TYPES,MODALITIES,fingerprint} from '../lib/funding-pipeline.mjs';
+ EVENT_TYPES,MODALITIES,fingerprint,offerDocumentGaps,fundingEligibilityForCase} from '../lib/funding-pipeline.mjs';
 const observed={id:'1',title:'Obra municipal',source:'bndes',source_url:'https://cidades.bndes.gov.br/',
  modality:'credito',observation_kind:'oportunidade_conferida',reference_status:'conferida_por_operador',
  checked_on:'2026-11-07',opens_on:'2026-11-01',closes_on:'2026-11-20',terms:{}};
@@ -58,4 +58,17 @@ test('AF-051..065 domínio tem tipos e datas estáveis',()=>{
  assert.equal(EVENT_TYPES.length,11);assert.equal(MODALITIES.length,5);
  assert.equal(validDate('2026-02-30'),false);
  assert.equal(fingerprint({a:1}).length,64);
+});
+
+test('AF-056/059: lista documental por linha evidencia faltas e nunca aprova financiamento',()=>{
+ const offer={...observed,terms:{documentation:['Licença ambiental','Projeto executivo'],
+  requiresGuarantee:true,minimumPopulation:50000}};
+ const municipality={population:20000,capag:'B'};
+ const docs=[{title:'Licença ambiental',status:'apresentado',versionId:'v1'}];
+ const gaps=offerDocumentGaps(offer,docs);
+ assert.equal(gaps.requiredCount,2);assert.equal(gaps.gaps.length,1);
+ const report=fundingEligibilityForCase(offer,municipality,docs);
+ assert.equal(report.decision,'analise_humana_obrigatoria');
+ assert.ok(report.signals.some(s=>s.code==='garantia'));
+ assert.ok(report.signals.some(s=>s.state==='possivel_impedimento'));
 });
