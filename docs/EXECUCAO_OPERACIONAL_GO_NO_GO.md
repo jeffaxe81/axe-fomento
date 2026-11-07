@@ -106,6 +106,14 @@ de rotina sem autorização e ensaio de recuperação. Meça indisponibilidade e
 
 ## Matriz e decisão
 
+Execute `node scripts/ops-gate-status.mjs` para ver o estado da ficha inicial
+(0/8, **NO-GO**, retorno 1 proposital). Para usar registros reais, copie
+`docs/operational-gates.template.json` para um local privado fora do Git,
+preencha apenas referências sanitizadas e execute
+`node scripts/ops-gate-status.mjs /caminho/privado/evidencias.json`.
+O CLI valida presença documental, **não** comprova a execução dos testes
+nem transforma declarações em autorização de produção.
+
 Preencha os oito portões e links de evidência em `docs/HOMOLOGACAO_OPERACIONAL.md`
 (ou em registro controlado da operação). Para cada um, registre
 responsável, timestamp, servidor-alvo, SHA, comando/resultado, log sanitizado,

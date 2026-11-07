@@ -97,6 +97,24 @@ jobs:
         run: node scripts/quality-10000.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
+      - name: Run rootless web container HTTP smoke (disposable CI only)
+        run: |
+          test "$(docker image inspect axe-fomento:ci --format '{{.Config.User}}')" = node
+          test "$(docker run --rm --network none --entrypoint id axe-fomento:ci -u)" = 1000
+          docker run -d --name fomento-web-runtime-smoke --network host \
+            -e PORT=3001 --env DATABASE_URL --env SESSION_SECRET \
+            --env MFA_ENCRYPTION_KEY --env APP_ORIGIN --env ATTACHMENT_ENCRYPTION_KEY \
+            axe-fomento:ci
+          trap 'docker rm -f fomento-web-runtime-smoke >/dev/null 2>&1 || true' EXIT
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:3001/api/health > /dev/null; then
+              echo "Runtime web rootless e GET /api/health: OK"
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs --tail=30 fomento-web-runtime-smoke
+          exit 1
       - name: Build isolated operations image
         run: docker build --file Dockerfile.operations --tag axe-fomento-operations:ci .
       - name: Verify encrypted database backup and isolated restore
