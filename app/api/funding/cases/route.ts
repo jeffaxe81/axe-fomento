@@ -1,0 +1,35 @@
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
+import {getSession} from '@/lib/auth';
+import {queryForMunicipality} from '@/lib/db';
+import {rejectUntrustedWrite} from '@/lib/security';
+export const runtime='nodejs';
+const schema=z.object({projectId:z.string().uuid(),observationId:z.string().uuid()}).strict();
+export async function GET(){
+ const actor=await getSession();if(!actor)return NextResponse.json({error:'Sessão requerida'},{status:401});
+ const cases=await queryForMunicipality(actor.municipality_id,
+  'SELECT c.id,c.project_id,c.observation_id,c.created_at,p.title AS project_title,'+
+  'o.title AS offer_title,o.source,o.source_url,o.modality,'+
+  '(SELECT COUNT(*)::int FROM funding_case_events e WHERE e.case_id=c.id) AS event_count '+
+  'FROM funding_cases c JOIN projects p ON p.id=c.project_id '+
+  'JOIN funding_observations o ON o.id=c.observation_id '+
+  'WHERE c.municipality_id=$1 ORDER BY c.created_at DESC,c.id DESC LIMIT 200',
+  [actor.municipality_id],actor.id);
+ return NextResponse.json({cases},{headers:{'cache-control':'no-store'}});
+}
+export async function POST(request:Request){
+ const origin=rejectUntrustedWrite(request);if(origin)return origin;
+ if(process.env.ENABLE_FUNDING_PIPELINE!=='yes')return NextResponse.json({error:'Módulo em homologação'},{status:503});
+ const actor=await getSession();if(!actor)return NextResponse.json({error:'Sessão requerida'},{status:401});
+ let body:unknown;try{body=await request.json()}catch{return NextResponse.json({error:'JSON inválido'},{status:400})}
+ const x=schema.safeParse(body);if(!x.success)return NextResponse.json({error:'Vínculo inválido'},{status:400});
+ const [row]=await queryForMunicipality<{id:string}>(actor.municipality_id,
+  'INSERT INTO funding_cases(municipality_id,project_id,observation_id,created_by) '+
+  'SELECT $1,p.id,o.id,$4 FROM projects p JOIN funding_observations o ON o.id=$3 AND o.municipality_id=$1 '+
+  'WHERE p.id=$2 AND p.municipality_id=$1 AND '+
+  '(p.owner_user_id=$4 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$4 AND u.role=\'admin\' AND u.active)) '+
+  'ON CONFLICT (municipality_id,project_id,observation_id) DO NOTHING RETURNING id',
+  [actor.municipality_id,x.data.projectId,x.data.observationId,actor.id],actor.id);
+ if(!row)return NextResponse.json({error:'Projeto/fonte indisponível, acesso negado ou vínculo existente'},{status:409});
+ return NextResponse.json({id:row.id},{status:201,headers:{'cache-control':'no-store'}});
+}
