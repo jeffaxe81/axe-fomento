@@ -95,7 +95,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{evaluationI
  ];
  try{
   const pdf=await renderReadinessPdf({title:'Pre-avaliacao: '+a.project_title,sections});
-  return new NextResponse(pdf,{
+  return new NextResponse(new Uint8Array(pdf).buffer as ArrayBuffer,{
    headers:{
     'content-type':'application/pdf',
     'content-disposition':'attachment; filename="axe-fomento-avaliacao-'+a.id+'.pdf"',
