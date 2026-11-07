@@ -117,7 +117,12 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
   </section>
   <section className="panel">
    <h2>AF-056 a AF-065 · Vincular financiamento a projeto</h2>
-   <FundingCaseForm enabled={enabled} projects={projects} observations={offers}/>
+   <p className="help">Somente referências declaradas conferidas nos últimos 30 dias podem
+    iniciar uma candidatura. Programas observados e publicações CAPAG não são ofertas.</p>
+   <FundingCaseForm enabled={enabled} projects={projects} observations={
+    offers.filter(o=>classifyObservation(o,today)==='potencialmente_aberta_verificar_fonte'||
+     classifyObservation(o,today)==='sem_prazo_comprovado')
+   }/>
    <div className="review-events">{cases.map(item=><article key={item.id} className="review-event">
     <h3><Link href={'/captacao/'+item.id}>{item.project_title}</Link></h3>
     <p>{item.offer_title} · {item.source}</p>

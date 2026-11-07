@@ -27,6 +27,10 @@ export async function POST(request:Request){
   'INSERT INTO funding_cases(municipality_id,project_id,observation_id,created_by) '+
   'SELECT $1,p.id,o.id,$4 FROM projects p JOIN funding_observations o ON o.id=$3 AND o.municipality_id=$1 '+
   'WHERE p.id=$2 AND p.municipality_id=$1 AND '+
+  "o.observation_kind='oportunidade_conferida' AND "+
+  "o.reference_status='conferida_por_operador' AND "+
+  "o.checked_on BETWEEN CURRENT_DATE - INTERVAL '30 days' AND CURRENT_DATE AND "+
+  "(o.closes_on IS NULL OR o.closes_on>=CURRENT_DATE) AND "+
   '(p.owner_user_id=$4 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$4 AND u.role=\'admin\' AND u.active)) '+
   'ON CONFLICT (municipality_id,project_id,observation_id) DO NOTHING RETURNING id',
   [actor.municipality_id,x.data.projectId,x.data.observationId,actor.id],actor.id);
