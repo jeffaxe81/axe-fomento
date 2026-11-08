@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
+import {PDFDocument} from 'pdf-lib';
 if(process.env.RUN_TEST_DB_ISOLATION!=='yes'||!process.env.DATABASE_ADMIN_URL||
  !process.env.DATABASE_URL||!process.env.TEST_BASE_URL)
  throw Error('AF051..065 exige banco e HTTP descartáveis no CI.');
@@ -185,6 +186,10 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    assert.ok((await detail.text()).includes('versão da fonte substituída'));
    const overview=await get('/captacao',analystA);
    assert.ok((await overview.text()).includes('Referência substituída por versão mais recente'));
+   const dossier=await get('/api/funding/dossier/'+caseId,analystA);
+   assert.equal(dossier.status,200);
+   const pdf=await PDFDocument.load(await dossier.arrayBuffer());
+   assert.match(pdf.getSubject()??'',/FONTE DESATUALIZADA, SUBSTITUIDA/);
    // Historical process updates remain valid; a new handoff cannot use the old notice.
    const handoff=await post('/api/funding/events',{...event,expectedRevision:3,
     eventKind:'submission_handoff'},analystA);

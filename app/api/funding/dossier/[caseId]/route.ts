@@ -3,6 +3,8 @@ import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import {z} from 'zod';
 import {getSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
+import {classifyObservation} from '@/lib/funding-pipeline.mjs';
 export const runtime='nodejs';
 export async function GET(_request:Request,{params}:{params:Promise<{caseId:string}>}){
  const actor=await getSession();if(!actor)return NextResponse.json({error:'Sessão requerida'},{status:401});
@@ -10,10 +12,15 @@ export async function GET(_request:Request,{params}:{params:Promise<{caseId:stri
  if(!z.string().uuid().safeParse(caseId).success)return NextResponse.json({error:'ID inválido'},{status:400});
  const [row]=await queryForMunicipality<{
   id:string;project_title:string;offer_title:string;source:string;source_url:string;
-  observation_kind:string;reference_status:string
+  observation_kind:string;reference_status:string;external_code:string;checked_on:string|null;
+  opens_on:string|null;closes_on:string|null;terms:Record<string,unknown>;is_superseded:boolean
  }>(actor.municipality_id,
   'SELECT c.id,p.title AS project_title,o.title AS offer_title,o.source,o.source_url,'+
-  'o.observation_kind,o.reference_status FROM funding_cases c '+
+  'o.observation_kind,o.reference_status,o.external_code,o.terms,'+
+  'o.checked_on::text AS checked_on,o.opens_on::text AS opens_on,o.closes_on::text AS closes_on,'+
+  'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id '+
+  'AND newer.source=o.source AND newer.external_code=o.external_code '+
+  'AND (newer.created_at,newer.id)>(o.created_at,o.id)) AS is_superseded FROM funding_cases c '+
   'JOIN projects p ON p.id=c.project_id AND p.municipality_id=c.municipality_id '+
   'JOIN funding_observations o ON o.id=c.observation_id AND o.municipality_id=c.municipality_id '+
   'WHERE c.id=$2 AND c.municipality_id=$1',
@@ -25,7 +32,12 @@ export async function GET(_request:Request,{params}:{params:Promise<{caseId:stri
   'SELECT event_kind,revision,note,evidence_url,value_cents,event_date,fingerprint '+
   'FROM funding_case_events WHERE municipality_id=$1 AND case_id=$2 ORDER BY revision ASC LIMIT 100',
   [actor.municipality_id,caseId],actor.id);
+ const today=radarReferenceDate().toISOString().slice(0,10);
+ const currentStatus=classifyObservation(row,today);
+ const noticeUnavailable=row.is_superseded||currentStatus!=='potencialmente_aberta_verificar_fonte';
  const pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica);
+ pdf.setSubject(noticeUnavailable?'ALERTA: FONTE DESATUALIZADA, SUBSTITUIDA OU SEM VIGENCIA COMPROVADA':
+  'DOSSIÊ INTERNO - VIGENCIA A RECONFIRMAR NA FONTE OFICIAL');
  const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
  const W=595,H=842;let page=pdf.addPage([W,H]),y=H-52;
  const clean=(s:string)=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
@@ -40,7 +52,9 @@ export async function GET(_request:Request,{params}:{params:Promise<{caseId:stri
   }
  }
  line('AXE FOMENTO — DOSSIÊ INTERNO DE PREPARAÇÃO',true);
- line('SEM VALIDADE DE PROTOCOLO, PARECER JURÍDICO OU APROVAÇÃO DO FINANCIADOR');
+ line('SEM VALIDADE DE PROTOCOLO, PARECER JURIDICO OU APROVACAO DO FINANCIADOR');
+ if(noticeUnavailable)line('ALERTA: FONTE SUBSTITUIDA, DESATUALIZADA OU SEM PRAZO ATUAL COMPROVADO',true);
+ else line('VIGENCIA INFORMADA PELO MUNICIPIO - RECONFIRMAR ANTES DE ENVIAR',true);
  y-=6;line('Projeto: '+row.project_title,true);line('Referência: '+row.offer_title);
  line('Origem: '+row.source+' / '+row.observation_kind+' / '+row.reference_status);
  line('Fonte de consulta: '+row.source_url);
