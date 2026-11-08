@@ -16,6 +16,7 @@ test('V1-07: independent notice attestation enforces RLS, roles, latest source a
  const today=radarReferenceDate().toISOString().slice(0,10);
  const plus14=new Date(Date.parse(today+'T00:00:00Z')+14*86400000).toISOString().slice(0,10);
  const prev=new Date(Date.parse(today+'T00:00:00Z')-86400000).toISOString().slice(0,10);
+ const older=new Date(Date.parse(today+'T00:00:00Z')-2*86400000).toISOString().slice(0,10);
  async function city(name){
   const id=(await admin.query("INSERT INTO municipalities(name,uf,population) VALUES($1,'SC',10000) RETURNING id",
    ['V1 conferência '+tag+' '+name])).rows[0].id;cities.push(id);return id;
@@ -70,6 +71,9 @@ test('V1-07: independent notice attestation enforces RLS, roles, latest source a
    assert.equal((await post(second,{...payload,municipalityId:cb})).status,400);
    assert.equal((await post(second,{...payload,officialDocumentUrl:
     'https://www.gov.br/municipio/outro-documento'})).status,409);
+   const backdated=await post(second,{...payload,reviewedOn:older});
+   assert.equal(backdated.status,409);
+   assert.equal((await backdated.json()).reason,'data_revisao_incoerente');
    const saved=await post(second,payload);
    assert.equal(saved.status,201);
    const data=await saved.json();assert.equal(data.externallyCertified,false);

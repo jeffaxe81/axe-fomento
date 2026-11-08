@@ -73,3 +73,28 @@ favoráveis **não executam deploy** nem substituem autorização formal.
 | Retificação/adiamento de edital | Criar nova observação; bloquear novas candidaturas na anterior |
 | Fluxo remoto sem ambiente municipal | Continuar CI isolado, mas não elevar o marco V1-08 |
 | Prova cadastrada pelo mesmo gestor | Exigir segunda pessoa, trilha imutável e autorização institucional |
+
+
+## Refinamento da antecipação — revisão independente na V1-07
+
+O radar `/oportunidades/conferidas` exibe a quantidade de registros **com pendências
+documentais** e permite filtrar esses itens. A pré-verificação exige:
+
+- publicação individual e prazo ainda potencialmente válido, conferidos com origem;
+- população municipal informada quando o edital utiliza limites populacionais;
+- segundo parecer positivo relacionado à **mesma observação** e ao **mesmo documento oficial**;
+- revisor identificável e diferente do autor, fundamentação e análise de requisitos;
+- data civil válida do parecer, nunca anterior à data da consulta/publicação nem posterior a hoje.
+
+A API de revisão também rejeita pareceres com datas incoerentes, antes de persistir.
+Os testes incluem casos de autorrevisão, observação divergente, URL trocada, fundamentação
+insuficiente, data inexistente, data futura, edital vencido e impedimento municipal.
+
+**Importante:** `documentaryReadyForExternalAudit=true` só significa que os registros
+**declarados pelo município** estão documentados para análise. Não certifica existência,
+vigência, crédito, financiamento, elegibilidade definitiva, autorização externa ou
+GO de produção. A comprovação V1-07 segue pendente de conferência real com fonte primária.
+
+A listagem do radar tem limite de 200 observações e 200 revisões recentes por município;
+este indicador não substitui auditoria do histórico integral quando esses limites forem
+excedidos. O ambiente-alvo e a decisão OP-01 a OP-08 continuam regidos pela issue #13.
