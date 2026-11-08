@@ -13,7 +13,7 @@ type Observed={
  opens_on:string|null;closes_on:string|null;checked_on:string|null;created_at:string;created_by:string;
  terms:{minimumPopulation?:number;thematicAreas?:string[];noticeEvidence?:{noticeIdentifier:string;noticeUrl:string;publicationDate:string;issuingAgency:string}};
 };
-type Review={id:string;observation_id:string;review_state:string;eligibility_state:string;reviewed_by:string;reviewed_on:string;reason:string;created_at:string};
+type Review={id:string;observation_id:string;review_state:string;eligibility_state:string;reviewed_by:string;reviewed_on:string;reason:string;requirements_note:string;official_document_url:string;created_at:string};
 type Filter={busca?:string|string[];modalidade?:string|string[];situacao?:string|string[]};
 const sourceLabel:Record<string,string>={
  transferegov:'Transferegov',bndes:'BNDES',tesouro_capag:'Tesouro/CAPAG',
@@ -37,7 +37,12 @@ const preflightLabels:Record<string,string>={
  populacao_municipal_nao_informada:'População municipal não informada',
  segunda_revisao_pendente:'Pendente de revisão por segundo administrador',
  elegibilidade_municipal_pendente:'Enquadramento municipal pendente de revisão',
- data_parecer_incoerente:'Data do parecer incompatível com a consulta'
+ data_parecer_incoerente:'Data do parecer incompatível com a consulta',
+ cadastro_municipal_pendente:'Dados básicos do município ausentes',
+ parecer_nao_vinculado_ao_edital:'Parecer vinculado a outra observação',
+ revisor_independente_nao_comprovado:'Revisor independente não comprovado',
+ documento_do_parecer_divergente:'Documento do parecer não corresponde ao edital',
+ fundamentacao_documental_incompleta:'Justificativa ou análise dos requisitos incompleta'
 };
 const value=(s:string|string[]|undefined)=>typeof s==='string'?s:Array.isArray(s)?s[0]??'':'';
 export default async function VerifiedRadar({searchParams}:{searchParams:Promise<Filter>}){
@@ -60,7 +65,7 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
    [actor.municipality_id],actor.id),
   queryForMunicipality<Review>(actor.municipality_id,
    'SELECT id,observation_id,review_state,eligibility_state,reviewed_by,'+
-   'reviewed_on::text AS reviewed_on,reason,created_at FROM funding_notice_reviews '+
+   'reviewed_on::text AS reviewed_on,reason,requirements_note,official_document_url,created_at FROM funding_notice_reviews '+
    'WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 200',
    [actor.municipality_id],actor.id)
  ]);
@@ -75,6 +80,8 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
  const audited=all.map(item=>({...item,
   preflight:auditV1NoticeCandidate(item,municipality,latestReview.get(item.id),today)
  }));
+ const documentaryReady=audited.filter(x=>x.preflight.documentaryReadyForExternalAudit).length;
+ const documentaryPending=audited.length-documentaryReady;
  const reviewable=all.filter(o=>o.state==='potencialmente_aberta_verificar_fonte'&&
   o.created_by!==actor.id&&o.terms?.noticeEvidence?.noticeUrl);
  const current=all.filter(x=>x.state==='potencialmente_aberta_verificar_fonte').length;
@@ -84,7 +91,8 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
   (!modality||o.modality===modality)&&
   (!situation||(situation==='current'?o.state==='potencialmente_aberta_verificar_fonte':
    situation==='reviewed'?o.observation_kind==='oportunidade_conferida'&&o.reference_status==='conferida_por_operador':
-   situation==='other'?o.state!=='potencialmente_aberta_verificar_fonte':true)));
+   situation==='other'?o.state!=='potencialmente_aberta_verificar_fonte':
+   situation==='pending'?!o.preflight.documentaryReadyForExternalAudit:true)));
  return <>
   <div className="section-eyebrow">V1 · RADAR COM EVIDÊNCIAS</div>
   <div className="page-heading"><div><h1>Fontes conferidas e referências</h1>
@@ -98,7 +106,9 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
     <article className="stat-card"><strong>{all.length}</strong><span>Referências municipais</span></article>
     <article className="stat-card"><strong>{reviewed}</strong><span>Conferidas por responsável</span></article>
     <article className="stat-card"><strong>{current}</strong><span>Potencialmente abertas, não confirmadas pela plataforma</span></article>
+    <article className="stat-card"><strong>{documentaryPending}</strong><span>Registros com pendências de documentação</span></article>
    </div>
+   <p className="help">{documentaryReady} registros com documentação preparada para auditoria externa, sem certificação oficial.</p>
    <p className="help">{reviewSummary.observationsWithSecondReview} observações com segundo parecer municipal registrado;
     {reviewSummary.declaredConfirmed} declarações positivas. Não são homologações da autoridade concedente.</p>
    <p className="note"><strong>Atenção:</strong> conferir uma referência não é prova de edital aberto,
@@ -127,6 +137,7 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
    <label>Situação<select name="situacao" defaultValue={situation}>
     <option value="">Todos os registros</option><option value="current">Potencialmente abertas</option>
     <option value="reviewed">Conferidas internamente</option><option value="other">A revisar/sem vigência</option>
+    <option value="pending">Com pendências documentais</option>
    </select></label>
    <button type="submit" className="btn btn-primary">Filtrar</button>
    <Link className="btn btn-outline" href="/oportunidades/conferidas">Limpar</Link>
