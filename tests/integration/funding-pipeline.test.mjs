@@ -168,7 +168,14 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    const next=await post('/api/funding/observations',updated,adminA);
    assert.equal(next.status,201);
    assert.notEqual(next.data.id,obsId);
-   assert.equal((await post('/api/funding/cases',{projectId:pA,observationId:obsId},analystA)).status,409);
+   const freshProject=await project(a,analystA,'apos-revisao');
+   // This is a previously unlinked project. A 409 therefore proves that the
+   // stale observation was refused, not merely a duplicate-case conflict.
+   assert.equal((await post('/api/funding/cases',{
+    projectId:freshProject,observationId:obsId},analystA)).status,409);
+   // Latest observation explicitly requests an update; it is not eligible either.
+   assert.equal((await post('/api/funding/cases',{
+    projectId:freshProject,observationId:next.data.id},analystA)).status,409);
    const oldCase=await get('/api/funding/cases',analystA);
    assert.equal(oldCase.status,200);
    const casesData=await oldCase.json();
