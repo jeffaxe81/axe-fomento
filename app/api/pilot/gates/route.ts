@@ -7,7 +7,8 @@ import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {PILOT_GATES,isEvidenceUrl,pilotEvidenceSummary} from '@/lib/pilot-gates.mjs';
 export const runtime='nodejs';
 type Row={id:string;gate_id:string;result_claimed:string;environment_label:string;
- evidence_url:string;evidence_sha256:string|null;performed_on:string;notes:string;created_at:string};
+ evidence_url:string;evidence_sha256:string|null;performed_on:string;notes:string;created_by:string;created_at:string};
+type Review={evidence_id:string;reviewed_by:string;decision:string;acceptance_url:string|null;created_at:string};
 const schema=z.object({
  gateId:z.enum(['OP-01','OP-02','OP-03','OP-04','OP-05','OP-06','OP-07','OP-08']),
  environmentLabel:z.string().trim().min(5).max(100),
@@ -20,10 +21,14 @@ export async function GET(){
  const actor=await getSession();if(!actor)return NextResponse.json({error:'Sessão requerida'},{status:401});
  const evidence=await queryForMunicipality<Row>(actor.municipality_id,
   'SELECT id,gate_id,result_claimed,environment_label,evidence_url,evidence_sha256,'+
-  'performed_on::text AS performed_on,notes,created_at FROM pilot_gate_evidence '+
+  'performed_on::text AS performed_on,notes,created_by,created_at FROM pilot_gate_evidence '+
   'WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 100',
   [actor.municipality_id],actor.id);
- return NextResponse.json({gates:PILOT_GATES,evidence,summary:pilotEvidenceSummary(evidence),
+ const reviews=await queryForMunicipality<Review>(actor.municipality_id,
+  'SELECT evidence_id,reviewed_by,decision,acceptance_url,created_at '+
+  'FROM pilot_gate_reviews WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 200',
+  [actor.municipality_id],actor.id);
+ return NextResponse.json({gates:PILOT_GATES,evidence,reviews,summary:pilotEvidenceSummary(evidence,reviews),
   independentAcceptance:'pendente',enabled:process.env.ENABLE_PILOT_EVIDENCE==='yes'},{
   headers:{'cache-control':'no-store'}});
 }

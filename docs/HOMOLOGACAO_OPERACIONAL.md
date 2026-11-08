@@ -54,3 +54,11 @@ município, e permanecem sujeitos a verificação e aceite externo independente.
 apenas esta escrita para exercícios A/B. Mesmo com oito declarações positivas,
 **a decisão permanece NO-GO**, até que aceite real seja efetuado fora do processo
 puramente técnico e documentado formalmente na issue #13.
+
+### Revisão independente dos testes
+O registro imutável de evidência pode ser aceito ou rejeitado por **outro administrador**
+por `/api/pilot/reviews`, com justificativa e URL HTTPS do termo assinado.
+A restrição autor/revisor diferente é imposta também por FK composta e CHECK do banco.
+O indicador de revisão interna independe da decisão final: **8/8 aceitos resulta em
+READY_FOR_FINAL_AUTHORIZATION, nunca GO automático**. Formalização institucional,
+operador responsável e deploy continuam fora do ambiente de CI.

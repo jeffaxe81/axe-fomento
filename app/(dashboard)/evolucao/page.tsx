@@ -1,20 +1,28 @@
 import Link from 'next/link';
 import {ProductProgress} from '@/components/product-progress';
 import {PilotEvidenceForm} from '@/components/pilot-evidence-form';
+import {PilotGateReviewForm} from '@/components/pilot-gate-review-form';
 import {PILOT_GATES,pilotEvidenceSummary} from '@/lib/pilot-gates.mjs';
 import {requireSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {PRODUCT_VERSIONS} from '@/lib/product-roadmap.mjs';
 type Evidence={id:string;gate_id:string;result_claimed:string;environment_label:string;
- evidence_url:string;performed_on:string;notes:string;created_at:string};
+ evidence_url:string;performed_on:string;notes:string;created_by:string;created_at:string};
+type Review={evidence_id:string;reviewed_by:string;decision:string;acceptance_url:string|null;created_at:string};
 export default async function ProductEvolution(){
  const user=await requireSession();
  const evidence=await queryForMunicipality<Evidence>(user.municipality_id,
   'SELECT id,gate_id,result_claimed,environment_label,evidence_url,'+
-  'performed_on::text AS performed_on,notes,created_at FROM pilot_gate_evidence '+
+  'performed_on::text AS performed_on,notes,created_by,created_at FROM pilot_gate_evidence '+
   'WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 100',
   [user.municipality_id],user.id);
- const summary=pilotEvidenceSummary(evidence);
+ const reviews=await queryForMunicipality<Review>(user.municipality_id,
+  'SELECT evidence_id,reviewed_by,decision,acceptance_url,created_at '+
+  'FROM pilot_gate_reviews WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 200',
+  [user.municipality_id],user.id);
+ const summary=pilotEvidenceSummary(evidence,reviews);
+ const reviewByEvidence=new Map<string,Review>();
+ for(const r of reviews){if(!reviewByEvidence.has(r.evidence_id))reviewByEvidence.set(r.evidence_id,r);}
  const latest=new Map<string,Evidence>();
  for(const e of evidence){if(!latest.has(e.gate_id))latest.set(e.gate_id,e);}
 
@@ -42,7 +50,7 @@ export default async function ProductEvolution(){
    <h2>Homologação operacional — oito portões</h2>
    <p><strong>Decisão: NO-GO.</strong> {summary.recordedGateCount}/{summary.required} portões
     possuem alguma evidência municipal registrada. {summary.declaredPass} têm resultado
-    declarado como positivo, mas <strong>0/8 têm aceite independente comprovado</strong>.
+    declarado como positivo, mas <strong>{summary.independentlyApproved}/8 têm revisão interna por segundo administrador</strong>.
     Um relatório de CI ou uma declaração não habilita produção.</p>
    <div className="review-events">{PILOT_GATES.map(g=>{
     const record=latest.get(g.id);
@@ -52,11 +60,17 @@ export default async function ProductEvolution(){
      <p>Situação: {record?'Evidência declarada ('+record.result_claimed+')':'Aguardando evidência'}</p>
      {record&&<p>Teste declarado em {record.performed_on} · Ambiente {record.environment_label}.
       {' '}<a href={record.evidence_url} rel="noopener noreferrer" target="_blank">Consultar registro informado</a></p>}
-     <p className="help">Aceite independente: pendente</p>
+     <p className="help">Revisão por segundo administrador: {record&&reviewByEvidence.get(record.id)?
+      reviewByEvidence.get(record.id)?.decision:'pendente'}.
+      Autorização final de produção: pendente.</p>
     </article>;
    })}</div>
    {user.role==='admin'&&<><h3>Registrar resultado do piloto</h3>
-    <PilotEvidenceForm enabled={process.env.ENABLE_PILOT_EVIDENCE==='yes'}/></>}
+    <PilotEvidenceForm enabled={process.env.ENABLE_PILOT_EVIDENCE==='yes'}/>
+    <h3>Revisão por administrador diferente</h3>
+    <PilotGateReviewForm
+     evidence={[...latest.values()].filter(x=>x.created_by!==user.id)}
+     enabled={process.env.ENABLE_PILOT_REVIEW==='yes'}/></>}
   </section>
   <section className="panel">
    <h2>Principais riscos e contornos</h2>
