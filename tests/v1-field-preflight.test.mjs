@@ -59,3 +59,8 @@ test('V1: rejects invalid reference dates and time policy',()=>{
  assert.throws(()=>auditPilotFieldPacket({today:'2026-02-30'}));
  assert.throws(()=>auditPilotFieldPacket({today,maxAgeDays:0}));
 });
+
+test('V1: midnight UTC must not shift the pilot civil date in Brasília',()=>{
+ const accepted=auditPilotFieldPacket({evidence:gates,reviews,today:'2026-11-08'});
+ assert.equal(accepted.completeDocumentaryGates,8);
+});

@@ -39,3 +39,19 @@ O procedimento para concluir a V1 continua em
 `docs/V1_HOMOLOGACAO_EDITAIS_20261108.md`. O painel segue **V1=6/8 (75%)**
 até a evidência de edital/eligibilidade em fonte oficial real (V1-07) e o
 piloto com aceite formal no ambiente do município (V1-08).
+
+## Pré-verificação do pacote de campo (V1-08)
+O novo relatório inclui `operationalPilot.documentaryPreflight`: para cada portão OP-01 a OP-08
+indica evidência ausente, ensaio não aprovado, URL inválida, SHA-256 não informado,
+ensaio ou revisão com mais de **30 dias**, revisão anterior ao próprio teste,
+revisor igual ao autor e divergência entre ambientes. O calendário usa a data
+civil de Brasília. A tela `/evolucao` exibe as mesmas pendências.
+
+O conjunto somente fica `readyForInstitutionalAudit=true` quando todos os oito
+portões possuem registros recentes, coerentes, checksum e revisão de outro
+administrador. **Esse valor significa que a documentação está pronta para
+análise, não que os testes de campo foram verificados pela AXE ou que houve
+aceite institucional.** Em todos os casos permanecem `fieldVerifiedGates=0`,
+`deploymentAuthorized=false` e `productionDecision=NO-GO` até conferência
+externa. Uma nova execução negativa substitui a positiva mais antiga na visão
+do portão, preservando o histórico.
