@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {NoticeReviewForm} from '@/components/notice-review-form';
 import {summarizeNoticeReviews} from '@/lib/notice-review-policy.mjs';
+import {auditV1NoticeCandidate} from '@/lib/v1-notice-preflight.mjs';
 import {requireSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
@@ -28,6 +29,15 @@ const statusLabel:Record<string,string>={
  referencia_sem_oferta_confirmada:'Referência — não é edital confirmado',
  evidencia_de_edital_pendente:'Aguardando evidência do edital específico',
  data_invalida:'Data de avaliação inválida'
+};
+const preflightLabels:Record<string,string>={
+ documento_individual_pendente:'Documento oficial específico ausente ou incompleto',
+ vigencia_nao_comprovada:'Vigência ou prazo sem comprovação documental',
+ possivel_impedimento_municipal:'Possível impedimento do município',
+ populacao_municipal_nao_informada:'População municipal não informada',
+ segunda_revisao_pendente:'Pendente de revisão por segundo administrador',
+ elegibilidade_municipal_pendente:'Enquadramento municipal pendente de revisão',
+ data_parecer_incoerente:'Data do parecer incompatível com a consulta'
 };
 const value=(s:string|string[]|undefined)=>typeof s==='string'?s:Array.isArray(s)?s[0]??'':'';
 export default async function VerifiedRadar({searchParams}:{searchParams:Promise<Filter>}){
@@ -62,12 +72,15 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
  const latestReview=new Map<string,Review>();
  for(const review of reviews){if(!latestReview.has(review.observation_id))latestReview.set(review.observation_id,review);}
  const reviewSummary=summarizeNoticeReviews(reviews);
+ const audited=all.map(item=>({...item,
+  preflight:auditV1NoticeCandidate(item,municipality,latestReview.get(item.id),today)
+ }));
  const reviewable=all.filter(o=>o.state==='potencialmente_aberta_verificar_fonte'&&
   o.created_by!==actor.id&&o.terms?.noticeEvidence?.noticeUrl);
  const current=all.filter(x=>x.state==='potencialmente_aberta_verificar_fonte').length;
  const reviewed=all.filter(x=>x.observation_kind==='oportunidade_conferida'&&
   x.reference_status==='conferida_por_operador').length;
- const listed=all.filter(o=>(!term||[o.title,o.source,o.external_code].some(t=>t.toLocaleLowerCase('pt-BR').includes(term)))&&
+ const listed=audited.filter(o=>(!term||[o.title,o.source,o.external_code].some(t=>t.toLocaleLowerCase('pt-BR').includes(term)))&&
   (!modality||o.modality===modality)&&
   (!situation||(situation==='current'?o.state==='potencialmente_aberta_verificar_fonte':
    situation==='reviewed'?o.observation_kind==='oportunidade_conferida'&&o.reference_status==='conferida_por_operador':
@@ -132,6 +145,11 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
      {' '}{latestReview.get(item.id)?.review_state} · Elegibilidade declarada:
      {' '}{latestReview.get(item.id)?.eligibility_state} · Em:
      {' '}{latestReview.get(item.id)?.reviewed_on}. Sem certificação externa.</p>}
+    <p className="help"><strong>Checklist antecipado V1-07:</strong>{' '}
+     {item.preflight.documentaryReadyForExternalAudit?
+      'Registros municipais prontos para auditoria externa, sem certificação da fonte.':
+      'Pendências: '+item.preflight.issues.map((code:string)=>preflightLabels[code]??code).join('; ')}.
+     {' '}V1-07 continua dependente de verificação real independente.</p>
     <p>Revisão declarada: {item.checked_on??'Não informada'} · Data final informada:
      {' '}{item.closes_on??'Não informada'} · Situação municipal: {item.compatible.reason}</p>
     <a href={item.source_url} target="_blank" rel="noopener noreferrer">Conferir no portal de origem</a>
