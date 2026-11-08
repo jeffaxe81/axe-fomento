@@ -9,7 +9,7 @@ type Offer={id:string;source:string;external_code:string;title:string;source_url
  observation_kind:string;reference_status:string;opens_on:string|null;closes_on:string|null;
  checked_on:string|null;terms:{annualRateBps?:number|null;termMonths?:number|null};created_at:string};
 type Case={id:string;project_id:string;project_title:string;offer_title:string;source:string;
- source_url:string;created_at:string};
+ source_url:string;created_at:string;is_superseded:boolean};
 type Project={id:string;title:string};
 type Event={case_id:string;revision:number;event_kind:string;evidence_url:string|null;value_cents:string|null};
 type Alert={modality:string;days_ahead:number};
@@ -25,7 +25,10 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
    'ORDER BY source,external_code,created_at DESC,id DESC LIMIT 150',[actor.municipality_id],actor.id),
   queryForMunicipality<Case>(actor.municipality_id,
    'SELECT c.id,c.project_id,p.title AS project_title,o.title AS offer_title,'+
-   'o.source,o.source_url,c.created_at FROM funding_cases c '+
+   'o.source,o.source_url,c.created_at,'+
+   'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id '+
+   'AND newer.source=o.source AND newer.external_code=o.external_code '+
+   'AND (newer.created_at,newer.id)>(o.created_at,o.id)) AS is_superseded FROM funding_cases c '+
    'JOIN projects p ON p.id=c.project_id AND p.municipality_id=c.municipality_id '+
    'JOIN funding_observations o ON o.id=c.observation_id AND o.municipality_id=c.municipality_id '+
    'WHERE c.municipality_id=$1 ORDER BY c.created_at DESC,c.id DESC LIMIT 150',
@@ -130,6 +133,7 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
    <div className="review-events">{cases.map(item=><article key={item.id} className="review-event">
     <h3><Link href={'/captacao/'+item.id}>{item.project_title}</Link></h3>
     <p>{item.offer_title} · {item.source}</p>
+    {item.is_superseded&&<p role="alert" className="note">Referência substituída por versão mais recente: confira novamente edital e condições antes de prosseguir.</p>}
     <Link className="btn btn-outline" href={'/captacao/'+item.id}>Abrir jornada e dossiê</Link>
    </article>)}</div>
   </section>

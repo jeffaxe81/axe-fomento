@@ -159,6 +159,26 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    const other=await get('/captacao',adminB);assert.equal(other.status,200);
    assert.ok(!(await other.text()).includes('Projeto municipal '+tag+' A'));
   });
+  await t.test('V1-07: revisão posterior revoga elegibilidade do snapshot anterior para novas candidaturas',async()=>{
+   const updated={...observed,
+    evidenceNote:'Nova revisão humana, registrada para testar supersessão sem certificar vigência.',
+    referenceStatus:'atualizacao_necessaria',
+    observationKind:'programa_observado',
+    terms:{}};
+   const next=await post('/api/funding/observations',updated,adminA);
+   assert.equal(next.status,201);
+   assert.notEqual(next.data.id,obsId);
+   assert.equal((await post('/api/funding/cases',{projectId:pA,observationId:obsId},analystA)).status,409);
+   const oldCase=await get('/api/funding/cases',analystA);
+   assert.equal(oldCase.status,200);
+   const casesData=await oldCase.json();
+   assert.equal(casesData.cases.find(x=>x.id===caseId)?.is_superseded,true);
+   const detail=await get('/captacao/'+caseId,analystA);
+   assert.equal(detail.status,200);
+   assert.ok((await detail.text()).includes('versão da fonte substituída'));
+   const overview=await get('/captacao',analystA);
+   assert.ok((await overview.text()).includes('Referência substituída por versão mais recente'));
+  });
  }finally{
   try{await app.query('ROLLBACK')}catch{}
   try{

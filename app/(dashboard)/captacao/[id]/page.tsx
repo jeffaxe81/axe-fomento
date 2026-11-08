@@ -8,7 +8,7 @@ import {classifyObservation,checkDossier,handoffFor,fundingEligibilityForCase} f
 import {FundingCaseEventForm,FundingSimulationForm} from '@/components/funding-forms';
 export const dynamic='force-dynamic';
 type Case={id:string;project_id:string;project_title:string;source:string;
- offer_title:string;source_url:string;observation_kind:string;reference_status:string;
+ offer_title:string;source_url:string;observation_kind:string;reference_status:string;is_superseded:boolean;
  checked_on:string|null;opens_on:string|null;closes_on:string|null;modality:string;
  terms:{documentation?:string[];requiresGuarantee?:boolean;minimumPopulation?:number}};
 type Event={id:string;revision:number;event_kind:string;note:string;
@@ -30,7 +30,11 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
  if(!z.string().uuid().safeParse(id).success)notFound();
  const [record]=await queryForMunicipality<Case>(actor.municipality_id,
   'SELECT c.id,c.project_id,p.title AS project_title,o.source,o.title AS offer_title,o.source_url,'+
-  'o.observation_kind,o.reference_status,o.checked_on::text AS checked_on,'+
+  'o.observation_kind,o.reference_status,'+
+  'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id '+
+  'AND newer.source=o.source AND newer.external_code=o.external_code '+
+  'AND (newer.created_at,newer.id)>(o.created_at,o.id)) AS is_superseded,'+
+  'o.checked_on::text AS checked_on,'+
   'o.opens_on::text AS opens_on,o.closes_on::text AS closes_on,o.modality,o.terms '+
   'FROM funding_cases c JOIN projects p ON p.id=c.project_id AND p.municipality_id=c.municipality_id '+
   'JOIN funding_observations o ON o.id=c.observation_id AND o.municipality_id=c.municipality_id '+
@@ -73,6 +77,7 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
    </div></div>
   <section className="panel">
    <h2>Fonte, modalidade e validade</h2>
+   {record.is_superseded&&<p role="alert" className="note"><strong>ATENÇÃO — versão da fonte substituída.</strong> Foi cadastrada uma revisão mais recente desta referência. Esta candidatura permanece como registro histórico, mas a confirmação atual de prazos e requisitos deve ser refeita antes de qualquer encaminhamento.</p>}
    <p>Modalidade {record.modality} · Situação indicativa: <strong>{classifyObservation(record,today)}</strong></p>
    <p>Última conferência informada: {record.checked_on??'Não registrada'}
      · Prazo informado: {record.closes_on??'Não registrado'}</p>

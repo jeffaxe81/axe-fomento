@@ -10,6 +10,9 @@ export async function GET(){
  const cases=await queryForMunicipality(actor.municipality_id,
   'SELECT c.id,c.project_id,c.observation_id,c.created_at,p.title AS project_title,'+
   'o.title AS offer_title,o.source,o.source_url,o.modality,'+
+  'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id '+
+  'AND newer.source=o.source AND newer.external_code=o.external_code '+
+  'AND (newer.created_at,newer.id)>(o.created_at,o.id)) AS is_superseded,'+
   '(SELECT COUNT(*)::int FROM funding_case_events e WHERE e.case_id=c.id) AS event_count '+
   'FROM funding_cases c JOIN projects p ON p.id=c.project_id '+
   'JOIN funding_observations o ON o.id=c.observation_id '+
@@ -31,7 +34,10 @@ export async function POST(request:Request){
   "o.reference_status='conferida_por_operador' AND "+
   "o.checked_on BETWEEN (now() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '30 days' AND (now() AT TIME ZONE 'America/Sao_Paulo')::date AND "+
   "o.terms ? 'noticeEvidence' AND "+
-  "o.closes_on >= (now() AT TIME ZONE 'America/Sao_Paulo')::date AND "+
+  "(o.opens_on IS NULL OR o.opens_on <= (now() AT TIME ZONE 'America/Sao_Paulo')::date) AND "+
+  "NOT EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id "+
+  "AND newer.source=o.source AND newer.external_code=o.external_code "+
+  "AND (newer.created_at,newer.id)>(o.created_at,o.id)) AND "+
   "(o.closes_on IS NULL OR o.closes_on>=(now() AT TIME ZONE 'America/Sao_Paulo')::date) AND "+
   '(p.owner_user_id=$4 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$4 AND u.role=\'admin\' AND u.active)) '+
   'ON CONFLICT (municipality_id,project_id,observation_id) DO NOTHING RETURNING id',
