@@ -37,7 +37,7 @@ test('V1: radar de referências não promove programas a editais, respeita munic
      noticeIdentifier:'EDITAL-TESTE-'+external,
      noticeUrl:'https://www.gov.br/municipio/edital-teste-interno-'+external,
      issuingAgency:'Secretaria Municipal de Testes',
-     publicationDate:new Date().toISOString().slice(0,10)
+     publicationDate:new Date(Date.now()-86400000).toISOString().slice(0,10)
     }}:{})]);
   observations.push(r.rows[0].id);
  }

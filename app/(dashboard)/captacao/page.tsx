@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {requireSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {classifyObservation,compareOffers,operationalOutcomes,alertsFor} from '@/lib/funding-pipeline.mjs';
@@ -46,13 +47,13 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
  ]);
  const summary=operationalOutcomes(cases,events);
  const alerts=subscriptions.flatMap(s=>alertsFor(offers.filter(o=>
-  s.modality==='todas'||s.modality===o.modality),s.days_ahead,new Date().toISOString().slice(0,10),municipality));
+  s.modality==='todas'||s.modality===o.modality),s.days_ahead,radarReferenceDate().toISOString().slice(0,10),municipality));
  const uniqueAlerts=[...new Map(alerts.map(a=>[a.id,a])).values()];
  const search=await searchParams;
  const chosen=(Array.isArray(search.comparar)?search.comparar:[search.comparar]).filter(
   (v):v is string=>typeof v==='string').slice(0,3);
  const selected=chosen.length?offers.filter(o=>chosen.includes(o.id)).slice(0,3):offers.slice(0,3);
- const today=new Date().toISOString().slice(0,10);
+ const today=radarReferenceDate().toISOString().slice(0,10);
  const compare=compareOffers(selected,today);
  return <>
   <div className="section-eyebrow">CAPTAÇÃO DE RECURSOS · AF-051 A AF-065</div>

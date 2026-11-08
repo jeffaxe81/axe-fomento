@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {notFound} from 'next/navigation';
 import {z} from 'zod';
 import {requireSession} from '@/lib/auth';
@@ -58,7 +59,7 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
  const fit=fundingEligibilityForCase(record,{population:municipality?.population??null,
   capag:capag?.classification??null},normalizedDocs);
  const handoff=handoffFor(record);
- const today=new Date().toISOString().slice(0,10);
+ const today=radarReferenceDate().toISOString().slice(0,10);
  const overdue=events.filter(e=>e.event_kind==='diligence_alert'&&e.event_date&&e.event_date<=today);
  const enabled=process.env.ENABLE_FUNDING_PIPELINE==='yes';
  return <>

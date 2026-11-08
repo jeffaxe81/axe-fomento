@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {getSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {rejectUntrustedWrite} from '@/lib/security';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {fingerprint,validDate,validOfficialUrl,validateNoticeEvidence} from '@/lib/funding-pipeline.mjs';
 export const runtime='nodejs';
 const termsSchema=z.object({
@@ -46,7 +47,7 @@ export async function POST(request:Request){
  if(actor.role!=='admin')return NextResponse.json({error:'Somente administrador municipal'},{status:403});
  let body:unknown;try{body=await request.json()}catch{return NextResponse.json({error:'JSON inválido'},{status:400})}
  const parsed=schema.safeParse(body);if(!parsed.success)return NextResponse.json({error:'Observação inválida'},{status:400});
- const x=parsed.data;const today=new Date().toISOString().slice(0,10);
+ const x=parsed.data;const today=radarReferenceDate().toISOString().slice(0,10);
  if(!validOfficialUrl(x.sourceUrl,x.source)||
   [x.opensOn,x.closesOn,x.checkedOn].some(d=>d!==null&&!validDate(d))||
   (x.checkedOn!==null&&x.checkedOn>today)||

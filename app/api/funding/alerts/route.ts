@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {getSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {rejectUntrustedWrite} from '@/lib/security';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {alertsFor} from '@/lib/funding-pipeline.mjs';
 export const runtime='nodejs';
 const schema=z.object({modality:z.enum([
@@ -28,7 +29,7 @@ export async function GET(){
   [actor.municipality_id],actor.id);
  const matches=subscriptions.flatMap(s=>alertsFor(observations.filter(
   o=>s.modality==='todas'||o.modality===s.modality),s.days_ahead,
-   new Date().toISOString().slice(0,10),municipality).map((o:{id:string;title:string;deadline:string})=>({
+   radarReferenceDate().toISOString().slice(0,10),municipality).map((o:{id:string;title:string;deadline:string})=>({
   ...o,windowDays:s.days_ahead
  })));
  const dedup=new Map(matches.map(m=>[m.id,m]));
