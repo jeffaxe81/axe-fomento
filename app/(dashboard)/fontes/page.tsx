@@ -2,9 +2,11 @@ import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
 import { queryForMunicipality } from '@/lib/db';
 import { SourceSyncButton } from '@/components/source-sync-button';
+import { SourceContractCheck } from '@/components/source-contract-check';
 
 export const dynamic='force-dynamic';
 type ProgramRow={id:string;external_id:string;title:string;provider:string;review_state:string;version:number;last_seen_at:string};
+type ContractCheck={id:string;source:string;result:string;schema_url:string;route_count:number|null;openapi_version:string|null;checked_at:string;message:string};
 type RunRow={id:string;status:string;found_count:number;changed_count:number;started_at:string;finished_at:string|null;error_summary:string|null};
 function formatDate(value:string|null) {
   return value ? new Date(value).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}) : 'Não informado';
@@ -14,7 +16,7 @@ export default async function OfficialSources() {
   const user=await requireSession();
   if(user.role!=='admin')return <section className="panel"><h1>Fontes públicas</h1>
     <p>O acompanhamento de fontes oficiais requer um administrador municipal.</p></section>;
-  const [records,runs]=await Promise.all([
+  const [records,runs,contracts]=await Promise.all([
     queryForMunicipality<ProgramRow>(user.municipality_id,
       'SELECT id,external_id,title,provider,review_state,version,last_seen_at FROM source_programs '+
       'WHERE municipality_id=$1 ORDER BY last_seen_at DESC,id DESC LIMIT 100',
@@ -22,6 +24,10 @@ export default async function OfficialSources() {
     queryForMunicipality<RunRow>(user.municipality_id,
       'SELECT id,status,found_count,changed_count,started_at,finished_at,error_summary '+
       'FROM source_ingestion_runs WHERE municipality_id=$1 ORDER BY started_at DESC,id DESC LIMIT 10',
+      [user.municipality_id],user.id),
+    queryForMunicipality<ContractCheck>(user.municipality_id,
+      'SELECT id,source,result,schema_url,route_count,openapi_version,checked_at,message '+
+      'FROM source_contract_checks WHERE municipality_id=$1 ORDER BY checked_at DESC LIMIT 12',
       [user.municipality_id],user.id),
   ]);
   return <>
@@ -38,6 +44,23 @@ export default async function OfficialSources() {
         target="_blank" rel="noopener noreferrer">Documentação oficial da API</a>.
         O esquema e as condições de reutilização devem ser revisados antes de habilitar a coleta.</p>
       <SourceSyncButton enabled={process.env.ENABLE_OFFICIAL_SOURCE_SYNC==='yes'}/>
+    </section>
+    <section className="panel">
+      <h2>V1 · Verificação do contrato técnico das APIs</h2>
+      <p>O portal oficial também disponibiliza o módulo Discricionárias e Legais.
+       A checagem coleta apenas o <strong>contrato OpenAPI</strong>, sem consultar dados de cidadãos
+       e sem transformar programas em editais abertos.</p>
+      <SourceContractCheck enabled={process.env.ENABLE_OFFICIAL_CONTRACT_CHECK==='yes'}/>
+      {contracts.length?<div className="table-scroll" role="region" tabIndex={0}
+       aria-label="Histórico de contratos oficiais">
+       <table><thead><tr><th>Módulo</th><th>Consulta</th><th>Rotas GET</th><th>Situação</th></tr></thead>
+       <tbody>{contracts.map(c=><tr key={c.id}><td>{c.source}</td>
+        <td>{formatDate(c.checked_at)}</td><td>{c.route_count??'Não apurado'}</td>
+        <td>{c.result==='documented'?'Documentação encontrada':'Contrato indisponível ou incompatível'}</td></tr>)}</tbody></table>
+       </div>:<p className="muted">Nenhuma verificação de contrato realizada neste município.</p>}
+      <p className="help">Mesmo com documentação encontrada, permanecem pendentes:
+       validar o esquema dos campos, consultar dados reais com autorização e testar o
+       edital individual com data e elegibilidade. Nenhum aceite é gerado automaticamente.</p>
     </section>
     <section className="panel source-table">
       <h2>Programas coletados</h2>

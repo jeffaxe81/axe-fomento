@@ -19,6 +19,7 @@ try {
   for(const table of ['funding_observations','funding_cases','funding_case_events'])
     await db.query('GRANT SELECT,INSERT ON public.'+table+' TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE(is_active) ON public.funding_alert_subscriptions TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.source_contract_checks TO fomento_app');
   await db.query('GRANT SELECT ON public.opportunities TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.municipal_capag TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.municipal_capag_history TO fomento_app');
