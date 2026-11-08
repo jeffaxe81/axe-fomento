@@ -18,6 +18,7 @@ test('V1 report cannot authorize production even with internal eight-gate approv
  assert.equal(report.operationalPilot.internallyReviewedGates,8);
  assert.equal(report.operationalPilot.fieldApprovedGates,0);
  assert.equal(report.acceptance.productionDecision,'NO-GO');
+ assert.equal(report.operationalPilot.documentaryPreflight.readyForInstitutionalAudit,false);
  assert.equal(report.acceptance.deploymentAuthorized,false);
  assert.equal(createHash('sha256').update(JSON.stringify(report)).digest('hex'),sha256);
 });
@@ -45,6 +46,7 @@ test('V1 report without field data remains NO-GO and enumerates all OP gates',()
  const {report}=buildV1AcceptanceReport({municipalityId:'muni-3',exportedAt});
  assert.equal(report.operationalPilot.gates.length,8);
  assert.equal(report.operationalPilot.declaredEvidenceGates,0);
+ assert.equal(report.operationalPilot.documentaryPreflight.completeDocumentaryGates,0);
  assert.equal(report.operationalPilot.internallyReviewedGates,0);
  assert.equal(report.acceptance.V1_07,'PENDING_EXTERNAL_SOURCE_VALIDATION');
  assert.equal(report.acceptance.V1_08,'PENDING_FIELD_PILOT_AND_INSTITUTIONAL_APPROVAL');

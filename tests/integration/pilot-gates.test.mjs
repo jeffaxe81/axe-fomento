@@ -117,6 +117,10 @@ test('V1: registro de portões OP é tenant-aware, imutável e não autoriza pro
    assert.equal(body.report.operationalPilot.internallyReviewedGates,1);
    assert.equal(body.report.operationalPilot.fieldApprovedGates,0);
    assert.equal(body.report.operationalPilot.gates.length,8);
+   assert.equal(body.report.operationalPilot.documentaryPreflight.readyForInstitutionalAudit,false);
+   assert.equal(body.report.operationalPilot.documentaryPreflight.fieldVerifiedGates,0);
+   assert.ok(body.report.operationalPilot.documentaryPreflight.gateChecks[0].issues
+    .includes('checksum_nao_informado'));
    assert.equal(body.report.noticeReview.authorityValidatedCount,0);
    assert.ok(!JSON.stringify(body).includes('Revisão sintética independente'));
    const other=await fetch(path,{headers:{cookie:userB.cookie}});
