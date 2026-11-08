@@ -3,7 +3,8 @@ import {z} from 'zod';
 import {getSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {rejectUntrustedWrite} from '@/lib/security';
-import {fingerprint,validDate,validOfficialUrl} from '@/lib/funding-pipeline.mjs';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
+import {fingerprint,validDate,validOfficialUrl,validateNoticeEvidence} from '@/lib/funding-pipeline.mjs';
 export const runtime='nodejs';
 const termsSchema=z.object({
  annualRateBps:z.number().int().min(0).max(10000).nullable().optional(),
@@ -12,7 +13,13 @@ const termsSchema=z.object({
  maximumPopulation:z.number().int().min(0).max(100000000).nullable().optional(),
  thematicAreas:z.array(z.string().trim().min(3).max(50)).max(12).optional(),
  requiresGuarantee:z.boolean().nullable().optional(),
- documentation:z.array(z.string().trim().min(3).max(150)).max(25).optional()
+ documentation:z.array(z.string().trim().min(3).max(150)).max(25).optional(),
+ noticeEvidence:z.object({
+  noticeIdentifier:z.string().trim().min(4).max(120),
+  noticeUrl:z.string().trim().url().max(500),
+  issuingAgency:z.string().trim().min(5).max(180),
+  publicationDate:z.string()
+ }).strict().optional()
 }).strict();
 const schema=z.object({
  source:z.enum(['transferegov','bndes','tesouro_capag','other_official']),
@@ -40,13 +47,14 @@ export async function POST(request:Request){
  if(actor.role!=='admin')return NextResponse.json({error:'Somente administrador municipal'},{status:403});
  let body:unknown;try{body=await request.json()}catch{return NextResponse.json({error:'JSON inválido'},{status:400})}
  const parsed=schema.safeParse(body);if(!parsed.success)return NextResponse.json({error:'Observação inválida'},{status:400});
- const x=parsed.data;const today=new Date().toISOString().slice(0,10);
+ const x=parsed.data;const today=radarReferenceDate().toISOString().slice(0,10);
  if(!validOfficialUrl(x.sourceUrl,x.source)||
   [x.opensOn,x.closesOn,x.checkedOn].some(d=>d!==null&&!validDate(d))||
   (x.checkedOn!==null&&x.checkedOn>today)||
   (x.opensOn&&x.closesOn&&x.opensOn>x.closesOn)||
   (x.observationKind==='oportunidade_conferida'&&
-  (x.referenceStatus!=='conferida_por_operador'||!x.checkedOn)))
+  (x.referenceStatus!=='conferida_por_operador'||!x.checkedOn||!x.closesOn||
+   !validateNoticeEvidence(x.terms.noticeEvidence,today).ok)))
   return NextResponse.json({error:'Fonte HTTPS, datas ou estado incompatível'},{status:400});
  const fp=fingerprint([x.source,x.externalCode,x.title,x.sourceUrl,x.modality,
   x.observationKind,x.referenceStatus,x.opensOn,x.closesOn,x.checkedOn,x.terms,x.evidenceNote]);

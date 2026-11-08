@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
 import {notFound} from 'next/navigation';
 import {z} from 'zod';
 import {requireSession} from '@/lib/auth';
@@ -7,9 +8,10 @@ import {classifyObservation,checkDossier,handoffFor,fundingEligibilityForCase} f
 import {FundingCaseEventForm,FundingSimulationForm} from '@/components/funding-forms';
 export const dynamic='force-dynamic';
 type Case={id:string;project_id:string;project_title:string;source:string;
- offer_title:string;source_url:string;observation_kind:string;reference_status:string;
+ offer_title:string;source_url:string;observation_kind:string;reference_status:string;is_superseded:boolean;
  checked_on:string|null;opens_on:string|null;closes_on:string|null;modality:string;
  terms:{documentation?:string[];requiresGuarantee?:boolean;minimumPopulation?:number}};
+type NoticeReview={review_state:string;eligibility_state:string;reviewed_on:string};
 type Event={id:string;revision:number;event_kind:string;note:string;
  evidence_url:string|null;event_date:string|null;value_cents:string|null;
  fingerprint:string;created_at:string};
@@ -29,13 +31,17 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
  if(!z.string().uuid().safeParse(id).success)notFound();
  const [record]=await queryForMunicipality<Case>(actor.municipality_id,
   'SELECT c.id,c.project_id,p.title AS project_title,o.source,o.title AS offer_title,o.source_url,'+
-  'o.observation_kind,o.reference_status,o.checked_on::text AS checked_on,'+
+  'o.observation_kind,o.reference_status,'+
+  'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=o.municipality_id '+
+  'AND newer.source=o.source AND newer.external_code=o.external_code '+
+  'AND (newer.created_at,newer.id)>(o.created_at,o.id)) AS is_superseded,'+
+  'o.checked_on::text AS checked_on,'+
   'o.opens_on::text AS opens_on,o.closes_on::text AS closes_on,o.modality,o.terms '+
   'FROM funding_cases c JOIN projects p ON p.id=c.project_id AND p.municipality_id=c.municipality_id '+
   'JOIN funding_observations o ON o.id=c.observation_id AND o.municipality_id=c.municipality_id '+
   'WHERE c.municipality_id=$1 AND c.id=$2',[actor.municipality_id,id],actor.id);
  if(!record)notFound();
- const [events,documents,[municipality],[capag]]=await Promise.all([
+ const [events,documents,[municipality],[capag],reviews]=await Promise.all([
   queryForMunicipality<Event>(actor.municipality_id,
    'SELECT id,revision,event_kind,note,evidence_url,event_date::text AS event_date,'+
    'value_cents::text AS value_cents,fingerprint,created_at FROM funding_case_events '+
@@ -51,14 +57,27 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
    'SELECT population FROM municipalities WHERE id=$1',[actor.municipality_id],actor.id),
   queryForMunicipality<{classification:string;reference_date:string}>(actor.municipality_id,
    'SELECT classification,reference_date::text AS reference_date FROM municipal_capag '+
-   'WHERE municipality_id=$1',[actor.municipality_id],actor.id)
+   'WHERE municipality_id=$1',[actor.municipality_id],actor.id),
+  queryForMunicipality<NoticeReview>(actor.municipality_id,
+   'SELECT r.review_state,r.eligibility_state,r.reviewed_on::text AS reviewed_on '+
+   'FROM funding_notice_reviews r JOIN funding_cases c ON c.observation_id=r.observation_id '+
+   'AND c.municipality_id=r.municipality_id WHERE r.municipality_id=$1 AND c.id=$2 '+
+   'ORDER BY r.created_at DESC,r.id DESC LIMIT 30',
+   [actor.municipality_id,id],actor.id)
  ]);
  const normalizedDocs=documents.map(d=>({title:d.title,status:d.status,versionId:d.version_id}));
  const dossier=checkDossier(normalizedDocs);
  const fit=fundingEligibilityForCase(record,{population:municipality?.population??null,
   capag:capag?.classification??null},normalizedDocs);
  const handoff=handoffFor(record);
- const today=new Date().toISOString().slice(0,10);
+ const today=radarReferenceDate().toISOString().slice(0,10);
+ const reviewThreshold=new Date(Date.parse(today+'T00:00:00Z')-30*86400000).toISOString().slice(0,10);
+ const independentReviewAccepted=reviews.some(r=>r.review_state==='confirmed_by_reviewer'&&
+  r.eligibility_state==='potential'&&r.reviewed_on>=reviewThreshold&&r.reviewed_on<=today)&&
+  !reviews.some(r=>r.review_state!=='confirmed_by_reviewer');
+ const canSubmitHandoff=!record.is_superseded&&
+  classifyObservation(record,today)==='potencialmente_aberta_verificar_fonte'&&
+  (process.env.ENABLE_NOTICE_REVIEW_GATE!=='yes'||independentReviewAccepted);
  const overdue=events.filter(e=>e.event_kind==='diligence_alert'&&e.event_date&&e.event_date<=today);
  const enabled=process.env.ENABLE_FUNDING_PIPELINE==='yes';
  return <>
@@ -72,6 +91,7 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
    </div></div>
   <section className="panel">
    <h2>Fonte, modalidade e validade</h2>
+   {record.is_superseded&&<p role="alert" className="note"><strong>ATENÇÃO — versão da fonte substituída.</strong> Foi cadastrada uma revisão mais recente desta referência. Esta candidatura permanece como registro histórico, mas a confirmação atual de prazos e requisitos deve ser refeita antes de qualquer encaminhamento.</p>}
    <p>Modalidade {record.modality} · Situação indicativa: <strong>{classifyObservation(record,today)}</strong></p>
    <p>Última conferência informada: {record.checked_on??'Não registrada'}
      · Prazo informado: {record.closes_on??'Não registrado'}</p>
@@ -103,6 +123,8 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
   </section>
   <section className="panel">
    <h2>AF-060 e AF-061 · Preparação e encaminhamento</h2>
+   {process.env.ENABLE_NOTICE_REVIEW_GATE==='yes'&&!independentReviewAccepted&&
+    <p role="alert" className="note">Encaminhamento bloqueado: falta revisão independente positiva e recente do edital, ou existe parecer de impedimento. Consulte o radar de fontes conferidas.</p>}
    <ol>{handoff.steps.map((step,i)=><li key={i}>{step}</li>)}</ol>
    <p className="help">O relatório PDF é interno. O protocolo deve ser realizado no portal externo
     por representante habilitado, e seu comprovante registrado no AXE.</p>
@@ -127,7 +149,8 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
   </section>
   <section className="panel">
    <h2>Registrar etapa de captação</h2>
-   <FundingCaseEventForm enabled={enabled} caseId={id} expectedRevision={events[0]?.revision??0}/>
+   <FundingCaseEventForm enabled={enabled} caseId={id} expectedRevision={events[0]?.revision??0}
+    canSubmitHandoff={canSubmitHandoff}/>
   </section>
  </>;
 }

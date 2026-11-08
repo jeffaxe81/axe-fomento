@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validOfficialUrl,parseMoneyCents,validDate,classifyObservation,compareOffers,
  simulateFinancing,initialEligibility,checkDossier,handoffFor,alertsFor,operationalOutcomes,
- EVENT_TYPES,MODALITIES,fingerprint,offerDocumentGaps,fundingEligibilityForCase,municipalityOfferCompatibility} from '../lib/funding-pipeline.mjs';
+ EVENT_TYPES,MODALITIES,fingerprint,offerDocumentGaps,fundingEligibilityForCase,municipalityOfferCompatibility,validateNoticeEvidence,isOfficialNoticeUrl} from '../lib/funding-pipeline.mjs';
 const observed={id:'1',title:'Obra municipal',source:'bndes',source_url:'https://cidades.bndes.gov.br/',
  modality:'credito',observation_kind:'oportunidade_conferida',reference_status:'conferida_por_operador',
- checked_on:'2026-11-07',opens_on:'2026-11-01',closes_on:'2026-11-20',terms:{}};
+ checked_on:'2026-11-07',opens_on:'2026-11-01',closes_on:'2026-11-20',terms:{noticeEvidence:{noticeIdentifier:'EDITAL-EXEMPLO-2026',noticeUrl:'https://www.gov.br/secretaria/edital-de-exemplo-2026',issuingAgency:'Secretaria de Exemplo',publicationDate:'2026-11-01'}}};
 test('AF-051..054 somente origens oficiais HTTPS e observações recentes podem parecer abertas',()=>{
  assert.equal(validOfficialUrl('https://api-publica.transferegov.gestao.gov.br/parcerias/programa','transferegov'),true);
  for(const url of ['http://api-publica.transferegov.gestao.gov.br','https://evil.gov.br.attacker.org',
@@ -74,9 +74,18 @@ test('AF-056/059: lista documental por linha evidencia faltas e nunca aprova fin
 });
 
 test('AF-055 não recomenda linhas com porte populacional declarado incompatível',()=>{
- const line={...observed,terms:{minimumPopulation:30000,thematicAreas:['saude']}};
+ const line={...observed,terms:{...observed.terms,minimumPopulation:30000,thematicAreas:['saude']}};
  assert.equal(municipalityOfferCompatibility(line,{population:5000,priority_areas:['saude']}).status,
   'possivel_impedimento');
  assert.equal(alertsFor([line],30,'2026-11-07',{population:5000,priority_areas:['saude']}).length,0);
  assert.equal(alertsFor([line],30,'2026-11-07',{population:50000,priority_areas:['saude']}).length,1);
+});
+
+test('V1: jamais classificar referência sem edital primário individual como aberta',()=>{
+ assert.equal(classifyObservation({...observed,terms:{}},'2026-11-07'),'evidencia_de_edital_pendente');
+ assert.equal(validateNoticeEvidence({noticeIdentifier:'X-2026',noticeUrl:'https://www.gov.br/municipio/edital-2026',issuingAgency:'Secretaria Municipal',publicationDate:'2026-12-01'},'2026-11-07').ok,false);
+ for(const url of ['https://evil.example/editais/2026','https://www.gov.br/','http://www.gov.br/editais/2026','https://api-publica.transferegov.gestao.gov.br/parcerias/programa']){
+  assert.equal(isOfficialNoticeUrl(url),false);
+ }
+ assert.equal(validateNoticeEvidence(observed.terms.noticeEvidence,'2026-11-07').ok,true);
 });

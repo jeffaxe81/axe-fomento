@@ -56,7 +56,11 @@ export function FundingObservationForm({enabled}:FundingFormProps){
     terms:{...(str('annualRateBps')?{annualRateBps:Number(str('annualRateBps'))}:{}),
      ...(str('termMonths')?{termMonths:Number(str('termMonths'))}:{}),
      ...(str('minimumPopulation')?{minimumPopulation:Number(str('minimumPopulation'))}:{}),
-     ...(str('thematicAreas')?{thematicAreas:str('thematicAreas').split(',').map(s=>s.trim()).filter(Boolean)}:{})}};
+     ...(str('thematicAreas')?{thematicAreas:str('thematicAreas').split(',').map(s=>s.trim()).filter(Boolean)}:{}),
+     ...(kind==='oportunidade_conferida'?{noticeEvidence:{
+      noticeIdentifier:str('noticeIdentifier'),noticeUrl:str('noticeUrl'),
+      issuingAgency:str('issuingAgency'),publicationDate:str('publicationDate')
+     }}:{})}};
    const r=await fetch('/api/funding/observations',{method:'POST',
     headers:{'content-type':'application/json'},body:JSON.stringify(body)});
    const result=await r.json();if(!r.ok)throw Error(errorFrom(result));
@@ -104,6 +108,17 @@ export function FundingObservationForm({enabled}:FundingFormProps){
   <label>População mínima informada <input name="minimumPopulation" type="number" min={0}/></label>
   <label>Áreas temáticas separadas por vírgula <input name="thematicAreas" maxLength={300}
    placeholder="saneamento, saude"/></label>
+  {kind==='oportunidade_conferida'&&<fieldset>
+   <legend>Comprovação documental do edital individual</legend>
+   <p className="help">Informe o documento primário oficial. Este formulário não consulta
+    nem certifica automaticamente a vigência; a conferência é declarada por você.</p>
+   <label>Número/identificador do edital <input name="noticeIdentifier" required
+    minLength={4} maxLength={120}/></label>
+   <label>Órgão emissor <input name="issuingAgency" required minLength={5} maxLength={180}/></label>
+   <label>URL direta do edital ou publicação oficial <input name="noticeUrl" required
+    type="url" maxLength={500} placeholder="https://www.gov.br/.../edital..."/></label>
+   <label>Data da publicação oficial <input name="publicationDate" required type="date"/></label>
+  </fieldset>}
   <label>Justificativa / evidência <textarea name="evidenceNote" minLength={15} maxLength={1500} required
    placeholder="Fonte e item do edital/linha que fundamentam a conferência"/></label>
   <button className="btn btn-primary" type="submit" disabled={!enabled||busy}>
@@ -168,8 +183,8 @@ export function FundingAlertForm({enabled}:FundingFormProps){
   <p className="help" role="status">{message}</p>
  </form>;
 }
-export function FundingCaseEventForm({enabled,caseId,expectedRevision}:FundingFormProps&{
- caseId:string;expectedRevision:number}){
+export function FundingCaseEventForm({enabled,caseId,expectedRevision,canSubmitHandoff=true}:FundingFormProps&{
+ caseId:string;expectedRevision:number;canSubmitHandoff?:boolean}){
  const router=useRouter();const [kind,setKind]=useState('eligibility');
  const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
  async function save(event:FormEvent<HTMLFormElement>){
@@ -196,13 +211,14 @@ export function FundingCaseEventForm({enabled,caseId,expectedRevision}:FundingFo
     <option value="financial_simulation">AF-058 — Premissas da simulação</option>
     <option value="documentation_check">AF-059 — Validação do dossiê documental</option>
     <option value="dossier">AF-060 — Revisão do dossiê</option>
-    <option value="submission_handoff">AF-061 — Encaminhamento assistido</option>
+    <option value="submission_handoff" disabled={!canSubmitHandoff}>AF-061 — Encaminhamento assistido</option>
     <option value="protocol_update">AF-062 — Protocolo ou situação externa</option>
     <option value="diligence_alert">AF-063 — Diligência com prazo</option>
     <option value="award_verification">AF-064 — Aprovação informada com evidência</option>
     <option value="disbursement_verification">AF-064 — Desembolso informado com evidência</option>
     <option value="decision_review">AF-065 — Revisão de resultado</option>
    </select></label>
+  {!canSubmitHandoff&&<p role="status" className="note">Encaminhamento assistido indisponível: o edital foi substituído, venceu ou requer nova conferência. O histórico continua registrável.</p>}
   <label>Descrição, parecer ou ação necessária
    <textarea name="note" rows={4} minLength={15} maxLength={1500} required/></label>
   <label>Referência de sistema / número do protocolo

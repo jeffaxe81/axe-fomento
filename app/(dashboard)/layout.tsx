@@ -12,7 +12,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="sidebar-section">PLATAFORMA</div>
       <nav aria-label="Navegação principal" className="nav">
         <Link href="/">▦ <span>Visão geral</span></Link>
+        <Link href="/evolucao">◫ <span>Evolução do projeto V1–V4</span></Link>
         <Link href="/oportunidades">◈ <span>Radar de oportunidades</span></Link>
+        <Link href="/oportunidades/conferidas">✓ <span>Fontes conferidas</span></Link>
         <Link href="/oportunidades/semantica">⌕ <span>Busca por intenção</span></Link>
         <Link href="/projetos">▤ <span>Meus projetos</span></Link>
         <Link href="/tarefas">☷ <span>Minhas tarefas</span></Link>

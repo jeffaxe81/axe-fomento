@@ -68,3 +68,15 @@ O servidor web não recebe credenciais administrativas. Veja `docs/SEGURANCA_TES
 ### Escopo de evolução V1.1–V4 (branch de desenvolvimento)
 
 O backlog de 50 funcionalidades está codificado na PR #24, incluindo relatório municipal de conversão e avaliador de pré-viabilidade. O avaliador requer `ENABLE_READINESS_EVALUATOR=yes` **apenas após homologação**, mantém evidências e rubricas versionadas, e exporta relatório PDF interno. Ver `docs/AF041_AF050_ENTREGA_100.md`. A operação pública segue bloqueada pelos portões da issue #13.
+
+
+### Acompanhamento V1 e governança de homologação
+O desenvolvimento do radar está em [PR #27](https://github.com/jeffaxe81/axe-fomento/pull/27),
+em branch de homologação e sem deploy automático. O menu `/evolucao` apresenta as
+barras V1–V4, situação dos marcos e portões OP-01 a OP-08. `/fontes` permite verificar
+contratos OpenAPI quando `ENABLE_OFFICIAL_CONTRACT_CHECK=yes` em ambiente autorizado.
+O registro de evidências do piloto exige `ENABLE_PILOT_EVIDENCE=yes`, e revisão por outro
+administrador exige `ENABLE_PILOT_REVIEW=yes`.
+Ambas as flags ficam **no** por padrão. Mesmo aprovação interna 8/8 não constitui
+GO automático: o aceite institucional, a homologação no servidor-alvo, a disponibilidade
+de editais reais e as condições de elegibilidade precisam ser comprovados.
