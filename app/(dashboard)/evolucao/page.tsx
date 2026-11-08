@@ -1,7 +1,23 @@
 import Link from 'next/link';
 import {ProductProgress} from '@/components/product-progress';
+import {PilotEvidenceForm} from '@/components/pilot-evidence-form';
+import {PILOT_GATES,pilotEvidenceSummary} from '@/lib/pilot-gates.mjs';
+import {requireSession} from '@/lib/auth';
+import {queryForMunicipality} from '@/lib/db';
 import {PRODUCT_VERSIONS} from '@/lib/product-roadmap.mjs';
-export default function ProductEvolution(){
+type Evidence={id:string;gate_id:string;result_claimed:string;environment_label:string;
+ evidence_url:string;performed_on:string;notes:string;created_at:string};
+export default async function ProductEvolution(){
+ const user=await requireSession();
+ const evidence=await queryForMunicipality<Evidence>(user.municipality_id,
+  'SELECT id,gate_id,result_claimed,environment_label,evidence_url,'+
+  'performed_on::text AS performed_on,notes,created_at FROM pilot_gate_evidence '+
+  'WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 100',
+  [user.municipality_id],user.id);
+ const summary=pilotEvidenceSummary(evidence);
+ const latest=new Map<string,Evidence>();
+ for(const e of evidence){if(!latest.has(e.gate_id))latest.set(e.gate_id,e);}
+
  return <>
   <div className="section-eyebrow">GOVERNANÇA DE PRODUTO · PLANO 2026–2027</div>
   <div className="page-heading"><div><h1>Evolução V1 a V4</h1>
@@ -21,6 +37,26 @@ export default function ProductEvolution(){
    </div>
    <p className="note">Datas são metas de planejamento a partir de 07/11/2026, não compromissos de órgãos externos.
    O marco é contado como codificado apenas quando existe evidência no repositório. A homologação real é separada.</p>
+  </section>
+  <section className="panel">
+   <h2>Homologação operacional — oito portões</h2>
+   <p><strong>Decisão: NO-GO.</strong> {summary.recordedGateCount}/{summary.required} portões
+    possuem alguma evidência municipal registrada. {summary.declaredPass} têm resultado
+    declarado como positivo, mas <strong>0/8 têm aceite independente comprovado</strong>.
+    Um relatório de CI ou uma declaração não habilita produção.</p>
+   <div className="review-events">{PILOT_GATES.map(g=>{
+    const record=latest.get(g.id);
+    return <article key={g.id} className="review-event">
+     <h3>{g.id} — {g.title}</h3>
+     <p>{g.required}</p>
+     <p>Situação: {record?'Evidência declarada ('+record.result_claimed+')':'Aguardando evidência'}</p>
+     {record&&<p>Teste declarado em {record.performed_on} · Ambiente {record.environment_label}.
+      {' '}<a href={record.evidence_url} rel="noopener noreferrer" target="_blank">Consultar registro informado</a></p>}
+     <p className="help">Aceite independente: pendente</p>
+    </article>;
+   })}</div>
+   {user.role==='admin'&&<><h3>Registrar resultado do piloto</h3>
+    <PilotEvidenceForm enabled={process.env.ENABLE_PILOT_EVIDENCE==='yes'}/></>}
   </section>
   <section className="panel">
    <h2>Principais riscos e contornos</h2>

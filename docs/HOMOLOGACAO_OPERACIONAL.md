@@ -43,3 +43,14 @@ A execução CI 40032003259 concluiu com sucesso, mas validações em ambiente d
 - Responsável pelo aceite: pendente
 - Data: pendente
 - Decisão final: **NO-GO até conclusão dos portões**
+
+## Registro eletrônico de evidências (V1)
+A página `/evolucao` passou a listar os oito portões e permitir a um administrador
+municipal registrar data, ambiente, resultado **declarado**, URL HTTPS de evidência
+sem parâmetros sensíveis e SHA-256 opcional. Os registros são append-only, por
+município, e permanecem sujeitos a verificação e aceite externo independente.
+
+`ENABLE_PILOT_EVIDENCE=no` é o padrão. O CI em banco descartável pode habilitar
+apenas esta escrita para exercícios A/B. Mesmo com oito declarações positivas,
+**a decisão permanece NO-GO**, até que aceite real seja efetuado fora do processo
+puramente técnico e documentado formalmente na issue #13.
