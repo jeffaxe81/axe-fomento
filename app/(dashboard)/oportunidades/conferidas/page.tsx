@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import {NoticeReviewForm} from '@/components/notice-review-form';
+import {summarizeNoticeReviews} from '@/lib/notice-review-policy.mjs';
 import {requireSession} from '@/lib/auth';
 import {queryForMunicipality} from '@/lib/db';
 import {radarReferenceDate} from '@/lib/opportunity-deadline.mjs';
@@ -7,9 +9,10 @@ export const dynamic='force-dynamic';
 type Observed={
  id:string;source:string;external_code:string;title:string;source_url:string;
  modality:string;observation_kind:string;reference_status:string;
- opens_on:string|null;closes_on:string|null;checked_on:string|null;created_at:string;
- terms:{minimumPopulation?:number;thematicAreas?:string[]};
+ opens_on:string|null;closes_on:string|null;checked_on:string|null;created_at:string;created_by:string;
+ terms:{minimumPopulation?:number;thematicAreas?:string[];noticeEvidence?:{noticeIdentifier:string;noticeUrl:string;publicationDate:string;issuingAgency:string}};
 };
+type Review={id:string;observation_id:string;review_state:string;eligibility_state:string;reviewed_by:string;reviewed_on:string;reason:string;created_at:string};
 type Filter={busca?:string|string[];modalidade?:string|string[];situacao?:string|string[]};
 const sourceLabel:Record<string,string>={
  transferegov:'Transferegov',bndes:'BNDES',tesouro_capag:'Tesouro/CAPAG',
@@ -33,17 +36,22 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
  const term=value(filters.busca).replaceAll('\0','').trim().slice(0,120).toLocaleLowerCase('pt-BR');
  const modality=value(filters.modalidade);
  const situation=value(filters.situacao);
- const [[municipality],observations]=await Promise.all([
+ const [[municipality],observations,reviews]=await Promise.all([
   queryForMunicipality<{name:string;population:number|null;priority_areas:string[]}>(actor.municipality_id,
    'SELECT name,population,priority_areas FROM municipalities WHERE id=$1',
    [actor.municipality_id],actor.id),
   queryForMunicipality<Observed>(actor.municipality_id,
    'SELECT * FROM (SELECT DISTINCT ON (source,external_code) id,source,external_code,title,'+
    'source_url,modality,observation_kind,reference_status,opens_on::text AS opens_on,'+
-   'closes_on::text AS closes_on,checked_on::text AS checked_on,created_at,terms '+
+   'closes_on::text AS closes_on,checked_on::text AS checked_on,created_at,created_by,terms '+
    'FROM funding_observations WHERE municipality_id=$1 '+
    'ORDER BY source,external_code,created_at DESC,id DESC) latest '+
    'ORDER BY created_at DESC,id DESC LIMIT 200',
+   [actor.municipality_id],actor.id),
+  queryForMunicipality<Review>(actor.municipality_id,
+   'SELECT id,observation_id,review_state,eligibility_state,reviewed_by,'+
+   'reviewed_on::text AS reviewed_on,reason,created_at FROM funding_notice_reviews '+
+   'WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 200',
    [actor.municipality_id],actor.id)
  ]);
  const today=radarReferenceDate().toISOString().slice(0,10);
@@ -51,6 +59,11 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
   ...item,state:classifyObservation(item,today),
   compatible:municipalityOfferCompatibility(item,municipality)
  }));
+ const latestReview=new Map<string,Review>();
+ for(const review of reviews){if(!latestReview.has(review.observation_id))latestReview.set(review.observation_id,review);}
+ const reviewSummary=summarizeNoticeReviews(reviews);
+ const reviewable=all.filter(o=>o.state==='potencialmente_aberta_verificar_fonte'&&
+  o.created_by!==actor.id&&o.terms?.noticeEvidence?.noticeUrl);
  const current=all.filter(x=>x.state==='potencialmente_aberta_verificar_fonte').length;
  const reviewed=all.filter(x=>x.observation_kind==='oportunidade_conferida'&&
   x.reference_status==='conferida_por_operador').length;
@@ -73,9 +86,22 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
     <article className="stat-card"><strong>{reviewed}</strong><span>Conferidas por responsável</span></article>
     <article className="stat-card"><strong>{current}</strong><span>Potencialmente abertas, não confirmadas pela plataforma</span></article>
    </div>
+   <p className="help">{reviewSummary.observationsWithSecondReview} observações com segundo parecer municipal registrado;
+    {reviewSummary.declaredConfirmed} declarações positivas. Não são homologações da autoridade concedente.</p>
    <p className="note"><strong>Atenção:</strong> conferir uma referência não é prova de edital aberto,
     aprovação de crédito ou elegibilidade. O sistema não consultou o processo oficial no momento desta página.
     A classificação depende de informação registrada por usuários municipais.</p>
+  </section>
+  <section className="panel">
+   <h2>Segunda conferência documental do município</h2>
+   <p>O parecer deve ser feito por um administrador diferente do autor. Ele registra
+    fonte documental, situação do prazo e critérios municipais, mas não garante
+    aprovação do programa nem substitui a consulta ao portal público.</p>
+   {actor.role==='admin'?<NoticeReviewForm
+    enabled={process.env.ENABLE_NOTICE_REVIEW==='yes'}
+    options={reviewable.map(o=>({id:o.id,title:o.title,
+     documentUrl:o.terms?.noticeEvidence?.noticeUrl??''}))}/>:
+    <p className="help">Somente administrador municipal pode registrar o segundo parecer.</p>}
   </section>
   <form method="get" action="/oportunidades/conferidas" className="filters">
    <label>Buscar referência<input type="search" name="busca" defaultValue={value(filters.busca)}
@@ -102,6 +128,10 @@ export default async function VerifiedRadar({searchParams}:{searchParams:Promise
      {item.compatible.status==='possivel_impedimento'&&<span className="chip">Possível impedimento</span>}
     </div>
     <h3>{item.title}</h3><p>Código: {item.external_code}</p>
+    {latestReview.has(item.id)&&<p className="help">Parecer municipal de segundo responsável:
+     {' '}{latestReview.get(item.id)?.review_state} · Elegibilidade declarada:
+     {' '}{latestReview.get(item.id)?.eligibility_state} · Em:
+     {' '}{latestReview.get(item.id)?.reviewed_on}. Sem certificação externa.</p>}
     <p>Revisão declarada: {item.checked_on??'Não informada'} · Data final informada:
      {' '}{item.closes_on??'Não informada'} · Situação municipal: {item.compatible.reason}</p>
     <a href={item.source_url} target="_blank" rel="noopener noreferrer">Conferir no portal de origem</a>

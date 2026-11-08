@@ -19,7 +19,7 @@ const schema=z.object({
 type Observation={
  id:string;created_by:string;observation_kind:string;reference_status:string;source:string;
  external_code:string;title:string;source_url:string;opens_on:string|null;closes_on:string|null;
- checked_on:string|null;terms:Record<string,unknown>
+ checked_on:string|null;terms:Record<string,unknown>;is_superseded:boolean
 };
 type Municipality={population:number|null;priority_areas:string[]};
 type Review={
@@ -55,7 +55,10 @@ export async function POST(request:Request){
  const [[obs],[municipality]]=await Promise.all([
   queryForMunicipality<Observation>(actor.municipality_id,
    'SELECT id,created_by,observation_kind,reference_status,source,external_code,title,source_url,'+
-   'opens_on::text AS opens_on,closes_on::text AS closes_on,checked_on::text AS checked_on,terms '+
+   'opens_on::text AS opens_on,closes_on::text AS closes_on,checked_on::text AS checked_on,terms,'+
+   'EXISTS(SELECT 1 FROM funding_observations newer WHERE newer.municipality_id=funding_observations.municipality_id '+
+   'AND newer.source=funding_observations.source AND newer.external_code=funding_observations.external_code '+
+   'AND (newer.created_at,newer.id)>(funding_observations.created_at,funding_observations.id)) AS is_superseded '+
    'FROM funding_observations WHERE municipality_id=$1 AND id=$2',
    [actor.municipality_id,x.observationId],actor.id),
   queryForMunicipality<Municipality>(actor.municipality_id,

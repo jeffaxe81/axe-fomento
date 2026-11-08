@@ -22,6 +22,7 @@ try {
   await db.query('GRANT SELECT,INSERT ON public.source_contract_checks TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.pilot_gate_evidence TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.pilot_gate_reviews TO fomento_app');
+  await db.query('GRANT SELECT,INSERT ON public.funding_notice_reviews TO fomento_app');
   await db.query('GRANT SELECT ON public.opportunities TO fomento_app');
   await db.query('GRANT SELECT,INSERT,UPDATE ON public.municipal_capag TO fomento_app');
   await db.query('GRANT SELECT,INSERT ON public.municipal_capag_history TO fomento_app');
