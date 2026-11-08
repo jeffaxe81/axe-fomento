@@ -13,7 +13,7 @@ const valid={
 };
 const municipality={population:10000,priority_areas:[]};
 const input={reviewState:'confirmed_by_reviewer',eligibilityState:'potential',
- officialDocumentUrl:valid.terms.noticeEvidence.noticeUrl};
+ officialDocumentUrl:valid.terms.noticeEvidence.noticeUrl,reviewedOn:'2026-11-08'};
 test('V1 human review is only a municipal attestation, never external certification',()=>{
  assert.deepEqual(validateIndependentNoticeReview(valid,municipality,'second-admin',input,today),
   {ok:true,reason:'parecer_humano_declarado_sem_certificacao_externa'});
@@ -41,4 +41,11 @@ test('V1 cannot attest unsupported URL, mismatch, unverified eligibility or inco
   eligibilityState:'undetermined'},today).reason,'enquadramento_indeterminado');
  assert.equal(validateIndependentNoticeReview(valid,municipality,'second-admin',{...input,
   reviewState:'insufficient_evidence'},today).reason,'nao_concluir_aptidao_sem_documento');
+});
+
+test('V1 rejeita conferência com data falsa, futura ou anterior ao documento',()=>{
+ for(const reviewedOn of ['2026-11-09','2026-11-01','2026-02-30','2026-10-01']){
+  assert.equal(validateIndependentNoticeReview(valid,municipality,'second-admin',
+   {...input,reviewedOn},today).reason,'data_revisao_incoerente');
+ }
 });
