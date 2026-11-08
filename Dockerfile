@@ -14,5 +14,8 @@ COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/sql ./sql
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
+# Never run the public HTTP process as root.
+RUN chown -R node:node /app
+USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
