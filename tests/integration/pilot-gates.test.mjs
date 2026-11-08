@@ -49,6 +49,7 @@ test('V1: registro de portões OP é tenant-aware, imutável e não autoriza pro
   const a=await addCity('A'),b=await addCity('B');
   const userA=await addUser(a,'admin','A');
   const analyst=await addUser(a,'analyst','C');
+  const reviewerA=await addUser(a,'admin','D');
   const userB=await addUser(b,'admin','B');
   await t.test('privacidade, autorizações e validação de prova',async()=>{
    assert.equal((await get(null)).status,401);
@@ -73,12 +74,41 @@ test('V1: registro de portões OP é tenant-aware, imutável e não autoriza pro
    assert.equal(page.status,200);const html=await page.text();
    assert.ok(html.includes('NO-GO'));assert.ok(html.includes('Staging municipal teste'));
   });
+  await t.test('aceite interno exige segundo admin e comprovante sem liberar produção',async()=>{
+   const evidence=(await (await get(userA)).json()).evidence[0];
+   const content={evidenceId:evidence.id,decision:'accepted',acceptanceUrl:
+    'https://www.gov.br/transferegov/relatorios/aceite-assinado-teste',
+    notes:'Revisão sintética independente somente para teste de integração no CI.',
+    reviewedOn:'2026-11-06'};
+   const review=(user,data)=>fetch(base+'/api/pilot/reviews',{method:'POST',
+    headers:{'content-type':'application/json',origin:base,...(user?.cookie?{cookie:user.cookie}:{})},
+    body:JSON.stringify(data)});
+   assert.equal((await review(null,content)).status,401);
+   assert.equal((await review(analyst,content)).status,403);
+   assert.equal((await review(userA,content)).status,409);
+   assert.equal((await review(userB,content)).status,404);
+   assert.equal((await review(reviewerA,{...content,acceptanceUrl:null})).status,400);
+   assert.equal((await review(reviewerA,{...content,acceptanceUrl:
+    'https://www.gov.br/aceite/documento?key=secret'})).status,400);
+   const accepted=await review(reviewerA,content);
+   assert.equal(accepted.status,201);
+   const result=await accepted.json();assert.equal(result.productionAuthorization,false);
+   assert.equal((await review(reviewerA,content)).status,409);
+   const after=await get(userA),body=await after.json();
+   assert.equal(body.summary.independentlyApproved,1);
+   assert.equal(body.summary.decision,'NO-GO');
+   assert.equal(body.reviews.length,1);
+   assert.equal((await (await get(userB)).json()).reviews.length,0);
+  });
   await t.test('banco nega SELECT sem tenant e DELETE em credencial web',async()=>{
    assert.equal((await app.query('SELECT id FROM pilot_gate_evidence')).rowCount,0);
    await assert.rejects(app.query('DELETE FROM pilot_gate_evidence'),/permission denied/i);
+   assert.equal((await app.query('SELECT id FROM pilot_gate_reviews')).rowCount,0);
+   await assert.rejects(app.query('DELETE FROM pilot_gate_reviews'),/permission denied/i);
   });
  }finally{
   try{
+   if(cities.length)await admin.query('DELETE FROM pilot_gate_reviews WHERE municipality_id=ANY($1::uuid[])',[cities]);
    if(cities.length)await admin.query('DELETE FROM pilot_gate_evidence WHERE municipality_id=ANY($1::uuid[])',[cities]);
    if(users.length)await admin.query('DELETE FROM users WHERE id=ANY($1::uuid[])',[users]);
    if(cities.length)await admin.query('DELETE FROM municipalities WHERE id=ANY($1::uuid[])',[cities]);

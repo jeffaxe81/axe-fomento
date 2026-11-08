@@ -24,3 +24,22 @@ test('V1: gate não listado é desconsiderado',()=>{
    evidence_url:'https://www.gov.br/portal/auditoria'}]);
  assert.equal(s.recordedGateCount,1);assert.equal(s.declaredPass,0);
 });
+
+test('V1: a revisão de outro administrador exige documento e não concede GO automático',()=>{
+ const rows=PILOT_GATES.map((g,i)=>({
+  id:'e-'+i,gate_id:g.id,created_by:'autor',result_claimed:'pass',
+  environment_label:'Homologação municipal',performed_on:'2026-11-07',
+  evidence_url:'https://www.gov.br/portal/relatorio-'+i
+ }));
+ const decisions=rows.map(r=>({
+  evidence_id:r.id,reviewed_by:'outro-admin',decision:'accepted',
+  acceptance_url:'https://www.gov.br/portal/aceite-'+r.id
+ }));
+ const ready=pilotEvidenceSummary(rows,decisions);
+ assert.equal(ready.independentlyApproved,8);
+ assert.equal(ready.decision,'READY_FOR_FINAL_AUTHORIZATION');
+ const self=pilotEvidenceSummary(rows,decisions.map(r=>({...r,reviewed_by:'autor'})));
+ assert.equal(self.independentlyApproved,0);assert.equal(self.decision,'NO-GO');
+ const rejected=pilotEvidenceSummary(rows,[{...decisions[0],decision:'rejected'},...decisions.slice(1)]);
+ assert.equal(rejected.independentlyApproved,7);assert.equal(rejected.decision,'NO-GO');
+});
