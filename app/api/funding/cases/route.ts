@@ -39,9 +39,18 @@ export async function POST(request:Request){
   "AND newer.source=o.source AND newer.external_code=o.external_code "+
   "AND (newer.created_at,newer.id)>(o.created_at,o.id)) AND "+
   "(o.closes_on IS NULL OR o.closes_on>=(now() AT TIME ZONE 'America/Sao_Paulo')::date) AND "+
+  "($5::boolean=false OR (EXISTS(SELECT 1 FROM funding_notice_reviews r "+
+  "WHERE r.municipality_id=o.municipality_id AND r.observation_id=o.id "+
+  "AND r.review_state='confirmed_by_reviewer' AND r.eligibility_state='potential' "+
+  "AND r.reviewed_on BETWEEN (now() AT TIME ZONE 'America/Sao_Paulo')::date-INTERVAL '30 days' "+
+  "AND (now() AT TIME ZONE 'America/Sao_Paulo')::date) "+
+  "AND NOT EXISTS(SELECT 1 FROM funding_notice_reviews rejected "+
+  "WHERE rejected.municipality_id=o.municipality_id AND rejected.observation_id=o.id "+
+  "AND rejected.review_state<>'confirmed_by_reviewer'))) AND "+
   '(p.owner_user_id=$4 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$4 AND u.role=\'admin\' AND u.active)) '+
   'ON CONFLICT (municipality_id,project_id,observation_id) DO NOTHING RETURNING id',
-  [actor.municipality_id,x.data.projectId,x.data.observationId,actor.id],actor.id);
+  [actor.municipality_id,x.data.projectId,x.data.observationId,actor.id,
+   process.env.ENABLE_NOTICE_REVIEW_GATE==='yes'],actor.id);
  if(!row)return NextResponse.json({error:'Projeto/fonte indisponível, acesso negado ou vínculo existente'},{status:409});
  return NextResponse.json({id:row.id},{status:201,headers:{'cache-control':'no-store'}});
 }

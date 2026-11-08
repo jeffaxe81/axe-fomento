@@ -66,6 +66,15 @@ export async function POST(request:Request){
       WHERE newer.municipality_id=o.municipality_id AND newer.source=o.source
       AND newer.external_code=o.external_code
       AND (newer.created_at,newer.id)>(o.created_at,o.id))
+    AND ($12::boolean=false OR (
+      EXISTS(SELECT 1 FROM funding_notice_reviews r
+       WHERE r.municipality_id=o.municipality_id AND r.observation_id=o.id
+       AND r.review_state='confirmed_by_reviewer' AND r.eligibility_state='potential'
+       AND r.reviewed_on BETWEEN (now() AT TIME ZONE 'America/Sao_Paulo')::date-INTERVAL '30 days'
+       AND (now() AT TIME ZONE 'America/Sao_Paulo')::date)
+      AND NOT EXISTS(SELECT 1 FROM funding_notice_reviews denied
+       WHERE denied.municipality_id=o.municipality_id AND denied.observation_id=o.id
+       AND denied.review_state<>'confirmed_by_reviewer')))
    ))
  ), latest AS MATERIALIZED(
   SELECT COALESCE(MAX(e.revision),0)::int AS revision FROM mutex
@@ -78,7 +87,8 @@ export async function POST(request:Request){
  ON CONFLICT (case_id,revision) DO NOTHING RETURNING id,revision`;
  const [row]=await queryForMunicipality<{id:string;revision:number}>(actor.municipality_id,sql,
   [actor.municipality_id,x.caseId,actor.id,x.expectedRevision,x.eventKind,x.note,
-   x.evidenceUrl,x.eventDate,money,payload,fp],actor.id);
+   x.evidenceUrl,x.eventDate,money,payload,fp,
+   process.env.ENABLE_NOTICE_REVIEW_GATE==='yes'],actor.id);
  if(!row)return NextResponse.json({error:'Vínculo indisponível, sem permissão ou versão concorrente'},{status:409});
  return NextResponse.json({id:row.id,revision:row.revision,
   notice:'Registro interno não é confirmação automática de aprovação, protocolo ou pagamento'},{

@@ -11,13 +11,14 @@ type Offer={id:string;source:string;external_code:string;title:string;source_url
 type Case={id:string;project_id:string;project_title:string;offer_title:string;source:string;
  source_url:string;created_at:string;is_superseded:boolean};
 type Project={id:string;title:string};
+type NoticeReview={observation_id:string;review_state:string;eligibility_state:string;reviewed_on:string};
 type Event={case_id:string;revision:number;event_kind:string;evidence_url:string|null;value_cents:string|null};
 type Alert={modality:string;days_ahead:number};
 const money=(cents:string)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'})
  .format(Number(cents)/100);
 export default async function MunicipalFunding({searchParams}:{searchParams:Promise<{comparar?:string|string[]}>}){
  const actor=await requireSession();const enabled=process.env.ENABLE_FUNDING_PIPELINE==='yes';
- const [offers,cases,projects,events,subscriptions,[municipality]]=await Promise.all([
+ const [offers,cases,projects,events,subscriptions,[municipality],reviews]=await Promise.all([
   queryForMunicipality<Offer>(actor.municipality_id,
    'SELECT DISTINCT ON (source,external_code) id,source,external_code,title,source_url,modality,'+
    'observation_kind,reference_status,opens_on::text AS opens_on,closes_on::text AS closes_on,'+
@@ -46,9 +47,26 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
    [actor.municipality_id,actor.id],actor.id),
   queryForMunicipality<{population:number|null;priority_areas:string[]}>(
    actor.municipality_id,'SELECT population,priority_areas FROM municipalities WHERE id=$1',
+   [actor.municipality_id],actor.id),
+  queryForMunicipality<NoticeReview>(actor.municipality_id,
+   'SELECT observation_id,review_state,eligibility_state,reviewed_on::text AS reviewed_on '+
+   'FROM funding_notice_reviews WHERE municipality_id=$1 ORDER BY created_at DESC,id DESC LIMIT 400',
    [actor.municipality_id],actor.id)
  ]);
  const summary=operationalOutcomes(cases,events);
+ const needsReview=process.env.ENABLE_NOTICE_REVIEW_GATE==='yes';
+ const todayForReview=radarReferenceDate().toISOString().slice(0,10);
+ const freshThreshold=new Date(Date.parse(todayForReview+'T00:00:00Z')-30*86400000)
+  .toISOString().slice(0,10);
+ const reviewByOffer=new Map<string,NoticeReview[]>();
+ for(const review of reviews)reviewByOffer.set(review.observation_id,
+   [...(reviewByOffer.get(review.observation_id)??[]),review]);
+ const hasAcceptedReview=(id:string)=>{
+  const list=reviewByOffer.get(id)??[];
+  return list.some(x=>x.review_state==='confirmed_by_reviewer'&&
+   x.eligibility_state==='potential'&&x.reviewed_on>=freshThreshold&&x.reviewed_on<=todayForReview)&&
+   !list.some(x=>x.review_state!=='confirmed_by_reviewer');
+ };
  const alerts=subscriptions.flatMap(s=>alertsFor(offers.filter(o=>
   s.modality==='todas'||s.modality===o.modality),s.days_ahead,radarReferenceDate().toISOString().slice(0,10),municipality));
  const uniqueAlerts=[...new Map(alerts.map(a=>[a.id,a])).values()];
@@ -125,10 +143,11 @@ export default async function MunicipalFunding({searchParams}:{searchParams:Prom
   <section className="panel">
    <h2>AF-056 a AF-065 · Vincular financiamento a projeto</h2>
    <p className="help">Somente referências declaradas conferidas nos últimos 30 dias podem
-    iniciar uma candidatura. Programas observados e publicações CAPAG não são ofertas.</p>
+    iniciar uma candidatura. Programas observados e publicações CAPAG não são ofertas.
+    {needsReview&&' O ambiente exige também revisão positiva por um segundo administrador, sem impedimentos registrados.'}</p>
    <FundingCaseForm enabled={enabled} projects={projects} observations={
-    offers.filter(o=>classifyObservation(o,today)==='potencialmente_aberta_verificar_fonte'||
-     classifyObservation(o,today)==='sem_prazo_comprovado')
+    offers.filter(o=>classifyObservation(o,today)==='potencialmente_aberta_verificar_fonte'&&
+     (!needsReview||hasAcceptedReview(o.id)))
    }/>
    <div className="review-events">{cases.map(item=><article key={item.id} className="review-event">
     <h3><Link href={'/captacao/'+item.id}>{item.project_title}</Link></h3>
