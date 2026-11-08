@@ -52,8 +52,21 @@ export async function POST(request:Request){
  WITH mutex AS MATERIALIZED(SELECT pg_advisory_xact_lock(hashtext($2::uuid::text)) AS acquired),
  permitted AS MATERIALIZED(
   SELECT c.id FROM funding_cases c JOIN projects p ON p.id=c.project_id AND p.municipality_id=$1
+  JOIN funding_observations o ON o.id=c.observation_id AND o.municipality_id=$1
   WHERE c.id=$2 AND c.municipality_id=$1 AND
    (p.owner_user_id=$3 OR EXISTS(SELECT 1 FROM users u WHERE u.id=$3 AND u.role='admin' AND u.active))
+   AND ($5<>'submission_handoff' OR (
+    o.observation_kind='oportunidade_conferida' AND o.reference_status='conferida_por_operador'
+    AND o.checked_on BETWEEN (now() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '30 days'
+      AND (now() AT TIME ZONE 'America/Sao_Paulo')::date
+    AND o.closes_on >= (now() AT TIME ZONE 'America/Sao_Paulo')::date
+    AND (o.opens_on IS NULL OR o.opens_on <= (now() AT TIME ZONE 'America/Sao_Paulo')::date)
+    AND o.terms ? 'noticeEvidence'
+    AND NOT EXISTS(SELECT 1 FROM funding_observations newer
+      WHERE newer.municipality_id=o.municipality_id AND newer.source=o.source
+      AND newer.external_code=o.external_code
+      AND (newer.created_at,newer.id)>(o.created_at,o.id))
+   ))
  ), latest AS MATERIALIZED(
   SELECT COALESCE(MAX(e.revision),0)::int AS revision FROM mutex
   LEFT JOIN funding_case_events e ON e.case_id=$2 AND e.municipality_id=$1

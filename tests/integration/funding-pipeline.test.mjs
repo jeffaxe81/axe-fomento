@@ -185,6 +185,13 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    assert.ok((await detail.text()).includes('versão da fonte substituída'));
    const overview=await get('/captacao',analystA);
    assert.ok((await overview.text()).includes('Referência substituída por versão mais recente'));
+   // Historical process updates remain valid; a new handoff cannot use the old notice.
+   const handoff=await post('/api/funding/events',{...event,expectedRevision:3,
+    eventKind:'submission_handoff'},analystA);
+   assert.equal(handoff.status,409);
+   const historical=await post('/api/funding/events',{...event,expectedRevision:3,
+    eventKind:'protocol_update'},analystA);
+   assert.equal(historical.status,201);
   });
  }finally{
   try{await app.query('ROLLBACK')}catch{}
