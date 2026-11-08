@@ -1,0 +1,3 @@
+export declare const INSERT_PROPOSAL_REVIEW_SQL:string;
+export declare const READ_PROPOSAL_REVIEW_SUMMARIES_SQL:string;
+export declare const READ_PROPOSAL_REVIEW_HISTORY_SQL:string;

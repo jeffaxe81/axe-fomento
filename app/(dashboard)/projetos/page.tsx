@@ -1,10 +1,115 @@
 import Link from 'next/link';
 import { requireSession } from '@/lib/auth';
-import { queryForMunicipality, type Project } from '@/lib/db';
+import { listMunicipalProjects, portfolioFilters, projectStatusLabel, type PortfolioParams } from '@/lib/project-portfolio';
+import { PROJECT_STATUSES } from '@/lib/project-status.mjs';
+
 export const dynamic = 'force-dynamic';
-const statusLabels: Record<string, string> = { rascunho: 'Rascunho', preparacao: 'Em preparação', submetido: 'Submetido', aprovado: 'Aprovado', recusado: 'Não aprovado' };
-export default async function Projects() {
+
+export default async function Projects({ searchParams }: { searchParams: Promise<PortfolioParams> }) {
   const user = await requireSession();
-  const projects = await queryForMunicipality<Project>(user.municipality_id, `SELECT p.id, p.title, p.status, p.created_at, o.title AS opportunity_title, u.full_name AS owner_name FROM projects p LEFT JOIN opportunities o ON o.id = p.opportunity_id LEFT JOIN users u ON u.id = p.owner_user_id WHERE p.municipality_id=$1 ORDER BY p.created_at DESC LIMIT 100`, [user.municipality_id]);
-  return <><div className="section-eyebrow">GESTÃO DE CAPTAÇÃO</div><div className="page-heading"><div><h1>Meus projetos</h1><p>Centralize propostas e acompanhe o andamento das candidaturas.</p></div><Link href="/oportunidades" className="btn btn-primary">+ Novo projeto</Link></div><section className="panel"><div className="panel-heading"><h3>Portfólio de projetos</h3><span>{projects.length} registrados</span></div>{projects.length ? <div className="table-scroll"><table><thead><tr><th>Projeto</th><th>Oportunidade</th><th>Responsável</th><th>Situação</th><th>Registro</th></tr></thead><tbody>{projects.map(p => <tr key={p.id}><td><b>{p.title}</b></td><td>{p.opportunity_title ?? 'Oportunidade removida'}</td><td>{p.owner_name ?? 'Não atribuído'}</td><td><span className="status-pill">{statusLabels[p.status] ?? p.status}</span></td><td>{new Date(p.created_at).toLocaleDateString('pt-BR')}</td></tr>)}</tbody></table></div> : <div className="empty-state"><div className="empty-symbol">▤</div><h3>Você ainda não possui projetos cadastrados</h3><p>Encontre uma oportunidade no radar para iniciar uma proposta.</p><Link href="/oportunidades" className="btn btn-primary">Ir para o radar →</Link></div>}</section></>;
+  const filters = portfolioFilters(await searchParams);
+  const { search, status, page } = filters;
+  const { projects, hasNext } = await listMunicipalProjects(user.municipality_id, filters);
+  const isFiltered = Boolean(search || status);
+
+  function pageHref(target: number) {
+    const query = new URLSearchParams();
+    if (search) query.set('busca', search);
+    if (status) query.set('situacao', status);
+    if (target > 1) query.set('pagina', String(target));
+    return query.size ? '/projetos?' + query.toString() : '/projetos';
+  }
+
+  return <>
+    <div className="section-eyebrow">GESTÃO DE CAPTAÇÃO</div>
+    <div className="page-heading">
+      <div>
+        <h1>Meus projetos</h1>
+        <p>Centralize propostas e acompanhe o andamento das candidaturas.</p>
+      </div>
+      <Link href="/oportunidades" className="btn btn-primary">+ Novo projeto</Link>
+    </div>
+
+    <form action="/projetos" method="get" className="filters project-filters">
+      <label>
+        Título do projeto
+        <input name="busca" type="search" maxLength={180} defaultValue={search} placeholder="Buscar por título" />
+      </label>
+      <label>
+        Situação
+        <select name="situacao" defaultValue={status}>
+          <option value="">Todas</option>
+          {PROJECT_STATUSES.map((item) => (
+            <option key={item} value={item}>{projectStatusLabel(item)}</option>
+          ))}
+        </select>
+      </label>
+      <button type="submit" className="btn btn-primary">Filtrar</button>
+      <a href="/projetos" className="btn btn-light">Limpar</a>
+    </form>
+
+    <section className="panel">
+      <div className="panel-heading">
+        <h2 className="project-panel-title">Portfólio de projetos</h2>
+        <span>{projects.length === 1 ? '1 projeto nesta página' : projects.length + ' projetos nesta página'}</span>
+      </div>
+      {projects.length > 0 ? (
+        <div className="table-scroll" role="region" aria-label="Projetos municipais" tabIndex={0}>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Projeto</th>
+                <th scope="col">Oportunidade</th>
+                <th scope="col">Responsável</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Registro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project) => (
+                <tr key={project.id}>
+                  <td>
+                    <Link className="project-title-link" href={'/projetos/' + project.id} prefetch={false}>
+                      {project.title}
+                    </Link>
+                  </td>
+                  <td>
+                    {project.opportunity_title ?? 'Sem oportunidade vinculada'}
+                    {project.opportunity_is_example && <span className="chip demo project-example">FICTÍCIO / TESTE</span>}
+                  </td>
+                  <td>{project.owner_name ?? 'Não atribuído'}</td>
+                  <td><span className="status-pill">{projectStatusLabel(project.status)}</span></td>
+                  <td>{new Date(project.created_at).toLocaleDateString('pt-BR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state">
+          {page > 1 ? (
+            <>
+              <h3>Nenhum projeto nesta página</h3>
+              <Link href={pageHref(1)} className="btn btn-outline">Voltar à primeira página</Link>
+            </>
+          ) : isFiltered ? (
+            <h3>Nenhum projeto corresponde aos filtros</h3>
+          ) : (
+            <>
+              <h3>Você ainda não possui projetos cadastrados</h3>
+              <p>Encontre uma oportunidade no radar para iniciar uma proposta.</p>
+              <Link href="/oportunidades" className="btn btn-primary">Ir para o radar →</Link>
+            </>
+          )}
+        </div>
+      )}
+      {(page > 1 || hasNext) && (
+        <nav className="project-pagination" aria-label="Páginas de projetos">
+          {page > 1 && <Link href={pageHref(page - 1)} className="btn btn-outline">← Anterior</Link>}
+          <span aria-current="page">Página {page}</span>
+          {hasNext && <Link href={pageHref(page + 1)} className="btn btn-outline">Próxima →</Link>}
+        </nav>
+      )}
+    </section>
+  </>;
 }

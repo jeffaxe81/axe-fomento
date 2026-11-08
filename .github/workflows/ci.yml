@@ -30,6 +30,25 @@ jobs:
       TEST_BASE_URL: http://127.0.0.1:3000
       RUN_TEST_DB_ISOLATION: 'yes'
       NEXT_TELEMETRY_DISABLED: '1'
+      ENABLE_DOCUMENT_UPLOADS: 'yes'
+      ENABLE_EXTERNAL_PROTOCOL_RECORDS: 'yes'
+      ENABLE_DILIGENCE_RECORDS: 'yes'
+      ENABLE_FINANCIAL_TRACKING: 'yes'
+      ENABLE_PROJECT_BUDGET: 'yes'
+      ENABLE_NORMATIVE_REGISTRY: 'yes'
+      ENABLE_MODALITY_MAP: 'yes'
+      ENABLE_EDICT_ASSISTED_EXTRACTION: 'yes'
+      ENABLE_SEMANTIC_CATALOG: 'yes'
+      ENABLE_PROPOSAL_DRAFTS: 'yes'
+      ENABLE_PROPOSAL_CONTENT_REVIEWS: 'yes'
+      ENABLE_FINANCIER_DIRECTORY: 'yes'
+      ENABLE_BNDES_CITY_CATALOG: 'yes'
+      ENABLE_COFIEX_CATALOG: 'yes'
+      ENABLE_INTERNATIONAL_COOPERATION: 'yes'
+      ENABLE_CONSORTIUMS: 'yes'
+      ENABLE_CONSORTIUM_SHARING: 'yes'
+      ENABLE_READINESS_EVALUATOR: 'yes'
+      ATTACHMENT_ENCRYPTION_KEY: 'AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI='
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,7 +65,7 @@ jobs:
       - name: Verify repeatable migrations and checksums
         run: |
           npm run db:migrate
-          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==5)process.exit(1);await db.end();"
+          node --input-type=module -e "import pg from 'pg';const db=new pg.Client({connectionString:process.env.DATABASE_ADMIN_URL});await db.connect();const r=await db.query('SELECT count(*)::int AS count FROM public.schema_migrations');if(r.rows[0].count!==35)process.exit(1);await db.end();"
       - name: Provision restricted application role
         run: npm run db:provision
       - name: Build
@@ -67,6 +86,8 @@ jobs:
         run: node --test tests/integration/*.test.mjs
       - name: Check restricted PostgreSQL role grants
         run: node --test tests/security/role-grants.test.mjs
+      - name: 10000 deterministic quality cases (AF-024/025/026, RLS, HTTP)
+        run: node scripts/quality-10000.mjs
       - name: Build Docker image
         run: docker build --tag axe-fomento:ci .
       - name: Build isolated operations image
