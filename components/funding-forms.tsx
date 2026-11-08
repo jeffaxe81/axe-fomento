@@ -183,8 +183,8 @@ export function FundingAlertForm({enabled}:FundingFormProps){
   <p className="help" role="status">{message}</p>
  </form>;
 }
-export function FundingCaseEventForm({enabled,caseId,expectedRevision}:FundingFormProps&{
- caseId:string;expectedRevision:number}){
+export function FundingCaseEventForm({enabled,caseId,expectedRevision,canSubmitHandoff=true}:FundingFormProps&{
+ caseId:string;expectedRevision:number;canSubmitHandoff?:boolean}){
  const router=useRouter();const [kind,setKind]=useState('eligibility');
  const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
  async function save(event:FormEvent<HTMLFormElement>){
@@ -211,13 +211,14 @@ export function FundingCaseEventForm({enabled,caseId,expectedRevision}:FundingFo
     <option value="financial_simulation">AF-058 — Premissas da simulação</option>
     <option value="documentation_check">AF-059 — Validação do dossiê documental</option>
     <option value="dossier">AF-060 — Revisão do dossiê</option>
-    <option value="submission_handoff">AF-061 — Encaminhamento assistido</option>
+    <option value="submission_handoff" disabled={!canSubmitHandoff}>AF-061 — Encaminhamento assistido</option>
     <option value="protocol_update">AF-062 — Protocolo ou situação externa</option>
     <option value="diligence_alert">AF-063 — Diligência com prazo</option>
     <option value="award_verification">AF-064 — Aprovação informada com evidência</option>
     <option value="disbursement_verification">AF-064 — Desembolso informado com evidência</option>
     <option value="decision_review">AF-065 — Revisão de resultado</option>
    </select></label>
+  {!canSubmitHandoff&&<p role="status" className="note">Encaminhamento assistido indisponível: o edital foi substituído, venceu ou requer nova conferência. O histórico continua registrável.</p>}
   <label>Descrição, parecer ou ação necessária
    <textarea name="note" rows={4} minLength={15} maxLength={1500} required/></label>
   <label>Referência de sistema / número do protocolo

@@ -59,3 +59,11 @@ O aceite operacional V1-07 ainda exige amostras reais, conferência de vigência
   `READY_FOR_FINAL_AUTHORIZATION`, não publicação automática.
 - A V1 permanece em **6/8 (75%)** até V1-07 e V1-08 possuírem
   evidências e aceite real. Simulações e dados sintéticos não contam.
+
+## Proteção contra fontes substituídas (V1-07 — defesa técnica)
+Novas candidaturas não podem vincular a versões de observação ultrapassadas; o fluxo de
+encaminhamento assistido é bloqueado pela API quando a fonte for substituída,
+vencida, futura ou estiver desatualizada. Histórico e diligências continuam acessíveis
+para prestação de contas. A tela e o dossiê PDF alertam explicitamente quando a
+referência histórica não pode mais ser tratada como oportunidade atual. Essa defesa
+ainda **não constitui prova externa** de edital vigente e não altera V1=6/8.

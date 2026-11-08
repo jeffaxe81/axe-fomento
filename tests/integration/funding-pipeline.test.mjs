@@ -183,7 +183,9 @@ test('AF051..065: jornada de captação privada, evidências, PDF e controles',a
    assert.equal(casesData.cases.find(x=>x.id===caseId)?.is_superseded,true);
    const detail=await get('/captacao/'+caseId,analystA);
    assert.equal(detail.status,200);
-   assert.ok((await detail.text()).includes('versão da fonte substituída'));
+   const oldDetailHtml=await detail.text();
+   assert.ok(oldDetailHtml.includes('versão da fonte substituída'));
+   assert.ok(oldDetailHtml.includes('Encaminhamento assistido indisponível'));
    const overview=await get('/captacao',analystA);
    assert.ok((await overview.text()).includes('Referência substituída por versão mais recente'));
    const dossier=await get('/api/funding/dossier/'+caseId,analystA);

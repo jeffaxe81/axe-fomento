@@ -133,7 +133,8 @@ export default async function FundingCasePage({params}:{params:Promise<{id:strin
   </section>
   <section className="panel">
    <h2>Registrar etapa de captação</h2>
-   <FundingCaseEventForm enabled={enabled} caseId={id} expectedRevision={events[0]?.revision??0}/>
+   <FundingCaseEventForm enabled={enabled} caseId={id} expectedRevision={events[0]?.revision??0}
+    canSubmitHandoff={!record.is_superseded && classifyObservation(record,today)==='potencialmente_aberta_verificar_fonte'}/>
   </section>
  </>;
 }
