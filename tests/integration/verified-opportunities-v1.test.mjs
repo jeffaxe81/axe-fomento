@@ -30,7 +30,7 @@ test('V1: radar de referências não promove programas a editais, respeita munic
    'modality,observation_kind,reference_status,opens_on,closes_on,checked_on,'+
    'evidence_note,fingerprint,created_by,terms) VALUES'+
    "($1,'transferegov',$2,$3,'https://api-publica.transferegov.gestao.gov.br/parcerias/programa',"+
-   "$4,$5,$6,CURRENT_DATE-1,CURRENT_DATE+$7::int,CURRENT_DATE,"+
+   "$4,$5,$6,CURRENT_DATE-2,CURRENT_DATE+$7::int,CURRENT_DATE-1,"+
    "'Referência municipal sintética de teste que não comprova edital oficial',repeat('a',64),$8,$9::jsonb) RETURNING id",
    [actor.city,external,title,'convenio',kind,status,days,actor.user,
     JSON.stringify(kind==='oportunidade_conferida'?{noticeEvidence:{
