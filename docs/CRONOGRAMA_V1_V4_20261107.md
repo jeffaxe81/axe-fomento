@@ -44,3 +44,18 @@ O registro de oportunidade conferida exige identificador do edital, órgão emis
 publicação e URL específica em domínio institucional. O estado ainda é **revisão municipal declarada**,
 não verificação remota de edital ativo. Programas e catálogos genéricos são mantidos como referências.
 O aceite operacional V1-07 ainda exige amostras reais, conferência de vigência e enquadramento.
+
+## Evolução técnica do piloto e revisão (07/11/2026)
+- Verificação documentada dos contratos OpenAPI dos módulos Gestão de Parcerias e
+  Discricionárias e Legais, com duas URLs fixas, limite de tamanho, fingerprint
+  SHA-256 e histórico isolado por município; **não certifica edital aberto**.
+- Portões OP-01..OP-08: `pilot_gate_evidence` armazena procedimento,
+  ambiente, data e comprovante informados pelo município, com RLS.
+- `pilot_gate_reviews` registra aceite ou rejeição por **segundo administrador**,
+  impedindo que o próprio autor aprove sua evidência (FK composta e CHECK no banco).
+- `/evolucao` passa a exibir resultado declarado, revisão interna e
+  autorização final **sempre dependente de ato institucional separado**.
+- Cenário com todos os oito testes revisados é
+  `READY_FOR_FINAL_AUTHORIZATION`, não publicação automática.
+- A V1 permanece em **6/8 (75%)** até V1-07 e V1-08 possuírem
+  evidências e aceite real. Simulações e dados sintéticos não contam.
