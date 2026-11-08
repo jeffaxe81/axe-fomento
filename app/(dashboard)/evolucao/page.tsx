@@ -48,6 +48,10 @@ export default async function ProductEvolution(){
   </section>
   <section className="panel">
    <h2>Homologação operacional — oito portões</h2>
+   {user.role==='admin'&&<p><a className="btn btn-outline" href="/api/pilot/acceptance-report"
+    download="axe-fomento-v1-evidencias.json">Exportar relatório de evidências da V1 (JSON + SHA-256)</a></p>}
+   <p className="help">Exportação auditável de declarações e revisões municipais.
+    Não certifica edital aberto nem concede autorização de produção.</p>
    <p><strong>Decisão: NO-GO.</strong> {summary.recordedGateCount}/{summary.required} portões
     possuem alguma evidência municipal registrada. {summary.declaredPass} têm resultado
     declarado como positivo, mas <strong>{summary.independentlyApproved}/8 têm revisão interna por segundo administrador</strong>.

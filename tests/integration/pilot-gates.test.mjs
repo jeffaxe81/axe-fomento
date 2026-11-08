@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 if(process.env.RUN_TEST_DB_ISOLATION!=='yes'||!process.env.DATABASE_ADMIN_URL||
  !process.env.DATABASE_URL||!process.env.TEST_BASE_URL)
  throw Error('Testes OP-01..08 exigem PostgreSQL descartável e HTTP local');
@@ -99,6 +99,32 @@ test('V1: registro de portões OP é tenant-aware, imutável e não autoriza pro
    assert.equal(body.summary.decision,'NO-GO');
    assert.equal(body.reviews.length,1);
    assert.equal((await (await get(userB)).json()).reviews.length,0);
+  });
+  await t.test('relatório de evidências permite auditoria, mas nunca libera produção',async()=>{
+   const path=base+'/api/pilot/acceptance-report';
+   assert.equal((await fetch(path)).status,401);
+   assert.equal((await fetch(path,{headers:{cookie:analyst.cookie}})).status,403);
+   const response=await fetch(path,{headers:{cookie:userA.cookie}});
+   assert.equal(response.status,200);
+   assert.match(response.headers.get('content-disposition')??'',/attachment;/);
+   assert.match(response.headers.get('cache-control')??'',/no-store/);
+   const body=await response.json();
+   const checksum=createHash('sha256').update(JSON.stringify(body.report)).digest('hex');
+   assert.equal(body.sha256,checksum);
+   assert.equal(body.report.acceptance.productionDecision,'NO-GO');
+   assert.equal(body.report.acceptance.deploymentAuthorized,false);
+   assert.equal(body.report.operationalPilot.declaredEvidenceGates,1);
+   assert.equal(body.report.operationalPilot.internallyReviewedGates,1);
+   assert.equal(body.report.operationalPilot.fieldApprovedGates,0);
+   assert.equal(body.report.operationalPilot.gates.length,8);
+   assert.equal(body.report.noticeReview.authorityValidatedCount,0);
+   assert.ok(!JSON.stringify(body).includes('Revisão sintética independente'));
+   const other=await fetch(path,{headers:{cookie:userB.cookie}});
+   assert.equal(other.status,200);
+   const foreignReport=(await other.json()).report;
+   assert.equal(foreignReport.operationalPilot.declaredEvidenceGates,0);
+   assert.equal(foreignReport.operationalPilot.internallyReviewedGates,0);
+   assert.notEqual(foreignReport.municipalityId,body.report.municipalityId);
   });
   await t.test('banco nega SELECT sem tenant e DELETE em credencial web',async()=>{
    assert.equal((await app.query('SELECT id FROM pilot_gate_evidence')).rowCount,0);
