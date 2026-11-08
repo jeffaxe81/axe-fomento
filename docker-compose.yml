@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fomento
+      POSTGRES_USER: fomento
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD em .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fomento -d fomento"]
+      interval: 5s
+      retries: 15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [private]
+  # Temporary setup service; privileged DB credentials NEVER reach the web service.
+  setup:
+    profiles: ["setup"]
+    build: .
+    environment:
+      DATABASE_ADMIN_URL: postgresql://fomento:${POSTGRES_PASSWORD}@db:5432/fomento
+      APP_DB_PASSWORD: ${POSTGRES_APP_PASSWORD:?Defina POSTGRES_APP_PASSWORD em .env}
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [private]
+  operations:
+    profiles: ["operations"]
+    build:
+      context: .
+      dockerfile: Dockerfile.operations
+    environment:
+      DATABASE_ADMIN_URL: postgresql://fomento:${POSTGRES_PASSWORD}@db:5432/fomento
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:?Defina BACKUP_ENCRYPTION_KEY em .env}
+      BACKUP_DIRECTORY: /backups
+      BACKUP_FILE: ${BACKUP_FILE:-}
+      RESTORE_TARGET_URL: ${RESTORE_TARGET_URL:-}
+      RESTORE_CONFIRMATION: ${RESTORE_CONFIRMATION:-}
+    depends_on:
+      db: { condition: service_healthy }
+    volumes: [backup-data:/backups]
+    networks: [private]
+  web:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://fomento_app:${POSTGRES_APP_PASSWORD:?Defina POSTGRES_APP_PASSWORD em .env}@db:5432/fomento
+      SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET em .env}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?Defina MFA_ENCRYPTION_KEY em .env}
+      APP_ORIGIN: ${APP_ORIGIN:?Defina APP_ORIGIN com a URL pública do sistema em .env}
+      TRUST_PROXY_IP: ${TRUST_PROXY_IP:-false}
+      NODE_ENV: production
+    depends_on:
+      db: { condition: service_healthy }
+    ports: ["127.0.0.1:3000:3000"]
+    networks: [private]
+volumes:
+  pgdata:
+  backup-data:
+networks:
+  private:
